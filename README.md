@@ -26,7 +26,7 @@ Installation
 
 3.  Navigate into the project directory:
 
-> cd /finance-manger/
+    cd /finance-manger/
 
 5.  Install the required packages:
 
@@ -36,15 +36,15 @@ Installation
 
     python manage.py migrate
 
-9.7.  Create the superuser:
+9.  Create the superuser:
+       
+      python manage.py migrate
 
-    python manage.py createsuperuser
-
-9.  Start the development server:
+11.  Start the development server:
 
     python manage.py runserver
 
-11.  Open the application in your web browser at http://localhost:8000/
+13.  Open the application in your web browser at http://localhost:8000/
 
 Usage
 -----
