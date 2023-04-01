@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update</title>
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2344/2344132.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
@@ -28,6 +29,25 @@
 </div>
 <script>
 $(document).ready(function() {
+
+
+     
+  var div = $('#div_id_category').children('div');
+  div.removeClass('form-group');
+  div.addClass('input-group');
+  $("#id_category").addClass("form-select");
+  $('#div_id_category select').after(`<a id="cat_add" class='btn input-group-text'><i class="bi bi-plus-lg"></i></a>`);
+
+  $('#cat_add').on('click', function(e) {
+    var popup = window.open("{% url 'transaction_type_create' %}", '_blank', 'width=auto,height=500px');
+    var intervalId = setInterval(function() {
+      if (popup.closed) {
+        location.reload();
+        clearInterval(intervalId);
+      };
+    }, 500);
+    });
+
   $("#update").submit(function(e) {
     e.preventDefault();
     if (validateForm()) {

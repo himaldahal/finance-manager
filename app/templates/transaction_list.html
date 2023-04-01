@@ -1,258 +1,175 @@
 {% extends 'base.html' %}
-
 {% block head %}
-
-{% endblock %}
-
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
+    .table th{
+      font-family: 'Roboto Slab', serif;
+    };
+  .table td{
+    font-size: 0.875rem;
+    font-family: 'Open Sans', sans-serif;
+  }
+  </style>
+{% endblock%}
 {% block content %}
-
+<h1>Transactions</h1>
     <div class="row">
-      <div id="analysis-div text-white">
-        <h1 class="h1 text-center">Expenses</h1>
-        <div class="row text-white">
-          <div class="col-sm-6 w-25 mx-auto ">
-            <div class="card" style="background-color: #313d66;">
-              <div class="card-body">
-                <h5 class="card-title fs-4">Balance</h5>
-               <p>RS. <span id="display-balance" class="text-muted">loading..</span></p>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 w-25">
-            <div class="card " style="background-color: #463f72;">
-              <div class="card-body">
-                <h5 class="card-title fs-4">Total Transaction</h5>
-                <p>RS.<span id="display-transaction" class="text-muted" >loading..</span></p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row mt-1">
-          <div class="chart w-25 col-md-12 col-12">
-           <canvas id="total_expense_chart" ></canvas>
-         </div>
-         <div class="chart w-75 col-md-12 col-12">
-          <canvas id="bymonthgraph"></canvas>
-    
-        </div>
-      </div>
-
-      <div class="col-md-8">
-      <h1 class="mb-4" >Transactions</h1>
-      </div>
-
-  </div>
-    <div class="row">
-      
-      <div class="col-md-4 mb-3">
+      <div class="col-md-2 mb-3 ">
         <a href="javascript:void(0);"
-          
           class="btn btn-outline-primary"
           id="tranadd">Add Transaction</a>
       </div>
-      <div class="col-md-8">
-        <div class="row mt-1">     
-       
-
-
-            
-        <form class="form-inline float-right" id="filterform">
-          <div class="form-group">
-            <label for="start-date" class="mr-2">Start Date:</label>
-            <input type="date" id="start-date" class="form-control mr-2">
+      <div class="col-md-6">
+         
+        <form class="form-inline">
+          <div class="form-group mb-2">
+            <label for="start-date" >From</label>
+            <input  type="date" id="start-date" name="start-date" class="form-control" >
           </div>
-          <div class="form-group">
-            <label for="end-date" class="mr-2">End Date:</label>
-            <input type="date" id="end-date" class="form-control mr-2">
+          <div class="form-group mb-2">
+            <label for="end-date" >To</label>
+            <input type="date" id="end-date"  name="end-date" class="form-control">
           </div>
-          <button type="submit" class="btn btn-secondary">Filter</button>
+          <button  class="btn btn-secondary mb-2" id="filter-btn">Filter</button>
         </form>
-  
-      </div>
+        
       </div>
     </div>
-    <div id="transdiv"></div>
+    
+    <div id="transdiv" style="overflow-x: auto;"></div>
    </div>
 
  
   <script defer>
-    function load_balance() {
-      $.ajax({
-        url: "{% url 'balance' %}",
-        type: "GET",
-        success: function (data) {
-          $("#display-balance").html(data.balance);
-          $("#display-transaction").html(data.total_transaction);
+    $("#filter-btn").click(function() {
+      $("form").submit(function(e){
+        e.preventDefault();
+    });
+      var startDate = $("#start-date").val();
+      var endDate = $("#end-date").val();
+      $("tbody tr").hide();
+      $("tbody tr[date]").each(function() {
+        var date = $(this).attr("date");
+        if (date >= startDate && date <= endDate) {
+          $(this).show();
         }
       });
-    };
-    function loadtransaction(){
+    });
+ 
+    function loadtransaction() {
+     
+
       $.ajax({
-        url: "/translist/",
+        url: "{% url 'transaction_list' %}",
         dataType: "json",
         success: function (data) {
           $('table').remove();
           var table = $('<table>').addClass('table');
+    
           var thead = $('<thead>');
-          var tr = $('<tr>');
+          var tr = $('<tr>').addClass('h5');
+          tr.append($('<th width="70">').text(' '));
           tr.append($('<th>').text('Name'));
           tr.append($('<th>').text('Amount'));
-          tr.append($('<th>').text('Date'));
-          tr.append($('<th>').text('Type'));
           tr.append($('<th>').text('Category'));
-          tr.append($('<th>').text('Remarks'));
-          tr.append($('<th>').text('Action '));
           thead.append(tr);
           table.append(thead);
-          var tbody = $('<tbody>');
+    
+          var tbody = $('<tbody class="h5 text-capitalize">');
           for (var i = 0; i < data.transactions.length; i++) {
             var transaction = data.transactions[i];
-            var tr = $('<tr>');
-            tr.append($('<td>').text(transaction.name));
-            tr.append($('<td>').text(transaction.amount));
-            tr.append($('<td>').text(transaction.date));
-            tr.append($('<td>').text(transaction.transaction_type));
-            tr.append($('<td>').text(transaction.category__name));
-            tr.append($('<td>').text(transaction.remarks));
-            tr.append($('<td>').html(`
-              <a href="/${transaction.pk}/update/" class="btn btn-primary">Update</a>
-              <a href="/${transaction.pk}/delete/" class="btn btn-danger delete-link">Delete</a>
+            var tr = $('<tr>').attr('date', transaction.date);
+            // add red color and '-' symbol for expenses
+            if (transaction.transaction_type === 'expense') {
 
-              `));
-
+              tr.append($('<td>').html(`<img height="30" width="30" src="https://api.dicebear.com/6.x/icons/svg?seed=${transaction.category__name}&backgroundType=solid&backgroundColor=ce93d8"> <span class="text-danger">${transaction.name}</span>`));
+              tr.append($('<td>').html(`<span class="text-danger">-${transaction.amount}</span>`));
+              tr.append($('<td>').html(`<span class="text-danger">${transaction.category__name}</span>`));
+            } 
+            else if (transaction.transaction_type === 'income') {
+              tr.append($('<td>').html(`<img height="30" width="30" src="https://api.dicebear.com/6.x/icons/svg?seed=${transaction.category__name}&backgroundType=gradientLinear&backgroundColor=ef9a9a"> <span class="text-success">${transaction.name}</span>`));
+              tr.append($('<td>').html(`<span class="text-success">+${transaction.amount}</span>`));
+              tr.append($('<td>').html(`<span class="text-success">${transaction.category__name}</span>`));
+            } 
+            else {
+              tr.append($('<td>').text(transaction.name));
+              tr.append($('<td>').text(transaction.amount));
+              tr.append($('<td>').text(transaction.category__name));
+            }
+    
+            var actionHtml = `
+              <a href="/${transaction.pk}/update/" class="text-primary h4 d-none"><i class="bi bi-pencil-square"></i></a>
+              <a a href="javascript:void(0)" onclick="confirmDelete('${transaction.pk}')" class="text-danger h4 d-none"><i class="bi bi-trash"></i></a>
+            `;
+            tr.prepend($('<td>').html(actionHtml));
+    
+            // show action icons on hover
+            tr.hover(
+              function () {
+                $(this).find('td:first-child a').removeClass('d-none');
+              },
+              function () {
+                $(this).find('td:first-child a').addClass('d-none');
+              }
+            );
+    
             tbody.append(tr);
           }
           table.append(tbody);
           $('#transdiv').html(table);
         }
       });
-      
-  };
-  function create_graph(){
-    $.ajax({
-      url: "/analysis/",
-      dataType: "json",
-      success: function (data) {
-        // Separate data by category name and calculate the total amount
-        var categories = {};
-        for (var i = 0; i < data.data.length; i++) {
-          var category = data.data[i].category__name;
-          var amount = parseFloat(data.data[i].amount);
-          if (!categories[category]) {
-            categories[category] = amount;
-          } else {
-            categories[category] += amount;
-          }
-        }
-
-        // Create arrays of category names and amounts
-        var labels = Object.keys(categories);
-        var amounts = Object.values(categories);
-
-        // Create a chart
-        var ctx = document.getElementById("total_expense_chart").getContext("2d");
-
-        var myChart = new Chart(ctx,{
-          type: "pie",
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                label:"Total Expenses",
-                data: amounts,
-                borderWidth: 1,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            scales: {
-              yAxes: [
-                {
-                  ticks: {
-                    beginAtZero: true,
-                  },
-                },
-              ],
+    };
+    
+    function confirmDelete(id) {
+      // create a new div element for the confirmation dialog
+      var confirmationDiv = $("<div>").addClass("modal fade")
+        .attr("id", "confirmation-modal")
+        .attr("tabindex", "-1")
+        .attr("aria-labelledby", "confirmation-modal-label")
+        .attr("aria-hidden", "true");
+    
+      // create the dialog elements
+      var dialog = $("<div>").addClass("modal-dialog");
+      var content = $("<div>").addClass("modal-content");
+      var header = $("<div>").addClass("modal-header")
+        .append($("<h5>").addClass("modal-title").attr("id", "confirmation-modal-label").text("Are you sure?"));
+      var body = $("<div>").addClass("modal-body").text("This transaction will be deleted permanently.");
+      var footer = $("<div>").addClass("modal-footer")
+        .append($("<button>").addClass("btn btn-secondary").attr("data-bs-dismiss", "modal").text("Cancel"))
+        .append($("<button>").addClass("btn btn-danger").text("Delete").on("click", function() {
+          // send a DELETE request to the server to delete the transaction
+          $.ajax({
+            url: "/" + id + "/delete/",
+            data:{'csrfmiddlewaretoken':'{{csrf_token}}' },
+            type: "DELETE",
+            success: function(data) {
+              $("tr[data-transaction-id='" + id + "']").remove();
+              $("#confirmation-modal").modal("hide");
             },
-          },
-        });
-      }
-    });
-    $.ajax({
-      url: "/expense-summary/",
-      success: function(data) {
-        var chartData = {
-          labels: [],
-          datasets: [{
-            label: 'Total Expense',
-            data: [],
-            fill: true,
-            borderColor: 'rgb(75, 192, 192)',
-            tension: 0.1
-          }]
-        };
-
-        // Parse data and populate chartData
-        for (var i = 0; i < data.expenses.length; i++) {
-          chartData.labels.push(data.expenses[i].month);
-          chartData.datasets[0].data.push(data.expenses[i].total);
-        }
-
-        // Draw chart
-        var ctx = document.getElementById('bymonthgraph').getContext('2d');
-        var myChart = new Chart(ctx, {
-          type: 'bar',
-          data: chartData,
-          options: {
-            scales: {
-              y: {
-                beginAtZero: true
-              }
-            },
-            plugins: {
-              legend: {
-                display: false
-              }
-            },
-            layout: {
-              padding: {
-                left: 20,
-                right: 20,
-                top: 0,
-                bottom: 20,
-              }
-            },
-            cornerRadius: 10,
-            borderWidth: 0,
-            barPercentage: 0.8,
-            categoryPercentage: 1.0,
-            responsive: true,
-            maintainAspectRatio: false,
-            barThickness: 30, 
-            maxBarThickness: 30,
-            cornerRadius: 10,
-            animation: {
-              duration: 1500
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log("Error: " + textStatus);
             }
-          },
+          });
+        }));
+    
+      // assemble the dialog elements
+      content.append(header).append(body).append(footer);
+      dialog.append(content);
+      confirmationDiv.append(dialog);
+    
+      // add the confirmation modal to the DOM
+      $("body").append(confirmationDiv);
+    
+      // show the confirmation modal
+      $("#confirmation-modal").modal("show");
+    }
 
-          plugins: [{
-            beforeInit: function(chart) {
-              chart.data.datasets.forEach(function(dataset) {
-                dataset.backgroundColor = '#3457D5';
-              });
-            }
-          }]
-        });
-        
-      }
-    });
-};
+
     $(document).ready(function () {
-      load_balance();
+    
       loadtransaction();
-      create_graph();
       $("#filter-input").on("keyup", function() {
         var value = $(this).val().toLowerCase();
         $("table tbody tr").filter(function() {
@@ -266,25 +183,12 @@
             clearInterval(interval);
             load_balance();
             loadtransaction();
-            create_graph();
+
           }
         }, 1000);
       });
       
-      $('#filterform').submit(function (event) {
-        event.preventDefault();
-        var startDate = new Date($('#start-date').val());
-        var endDate = new Date($('#end-date').val());
-        $('table tbody tr').each(function () {
-          var rowDate = new Date($(this).find('td:nth-child(3)').text());
-          if (rowDate >= startDate && rowDate <= endDate) {
-            $(this).show();
-          } else {
-            $(this).hide();
-          }
-        });
-      });
-
+   
     });
     $(document).on('click', '.delete-link', function(e) {
       $('table').remove();
@@ -300,14 +204,9 @@
         success: function(response) {
           load_balance();
           loadtransaction();
-      create_graph();
-
-
         },
         error: function(error) {
           load_balance();
-      create_graph();
-
           loadtransaction();
         }
       });

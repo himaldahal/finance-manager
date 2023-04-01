@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+  <h1 class="text-center mb-4 my-5">Currency Converter</h1>
+  <div class="rows mx-auto d-grid gap-0 ">
+    <div class="col-md-8 input-group mb-3">
+      <input type="number" class="form-control" placeholder="Enter value" value="1" id="amount" name="amount" required>
+      <select id="from" name="from" class="form-select" required></select>
+    </div>
+    <div class="text-center ">
+      <p style="background-color:#7149C6;"class="btn text-white" id="swap"><i class="bi bi-arrow-down-up"></i></p>
+    </div>
+    <div class=" col-md-8 input-group mb-3">
+      <input type="text" readonly class="form-control" id="result" name="result">
+      <select id="to" name="to" class="form-select" required></select>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    const fromSelect = $("#from");
+    const toSelect = $("#to");
+    const amountInput = $("#amount");
+    const resultInput = $("#result");
+    const rowsDiv = $(".rows");
+  
+    let exchangeRates;
+    let baseCurrency = "USD";
+  
+    // Fetch exchange rate data
+    function fetchExchangeRates(base) {
+      $.getJSON(`https://api.exchangerate-api.com/v4/latest/${base}`)
+        .done(function(data) {
+          exchangeRates = data.rates;
+          $.each(exchangeRates, function(currencyCode, currencyRate) {
+            fromSelect.add(toSelect).append(`<option value="${currencyCode}">${currencyCode}</option>`);
+          });
+          toSelect.find("option:eq(1)").prop("selected", true);
+          summon();
+        })
+        .fail(function() {
+          resultInput.val("Error fetching exchange rates");
+        });
+    }
+  
+    fetchExchangeRates(baseCurrency);
+  
+    function summon() {
+      const amount = parseFloat(amountInput.val());
+      if (!isNaN(amount)) {
+        const from = fromSelect.val();
+        const to = toSelect.val();
+        if (from !== baseCurrency) {
+          fetchExchangeRates(from);
+          baseCurrency = from;
+        }
+        const rate = exchangeRates[to];
+        const convertedAmount = amount * rate;
+        resultInput.val(convertedAmount.toFixed(2));
+      } else {
+        resultInput.val("0.00");
+      }
+    }
+  
+    amountInput.add(fromSelect).add(toSelect).on("change input", function() {
+      summon();
+    });
+  
+    // Swap currencies
+    $("#swap").click(function() {
+      const from = fromSelect.val();
+      const to = toSelect.val();
+      fromSelect.val(to);
+      toSelect.val(from);
+      summon();
+    });
+  
+    const viewportWidth = $(window).width();
+    if (viewportWidth > 992) { 
+      rowsDiv.addClass("w-25");
+    }
+  });
+  </script>
+  
+
+{% endblock %}
+{% block footerclass %} mt-5 {% endblock %}
