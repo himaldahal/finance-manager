@@ -1,0 +1,40 @@
+{% load crispy_forms_tags%}
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>   Create an Account</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2344/2344132.png">
+
+ </head>
+<body>
+  <div class="container">
+    <h1>Register</h1>
+
+    {% load crispy_forms_tags %}
+
+    
+    {% block content %}
+    <form method="POST" class="form-group mx-auto">
+      {% csrf_token %}
+      {{ form|crispy }}
+      {% for field in form %}
+        {% if field.errors %}
+          {% for error in field.errors %}
+            <p class="text-danger">{{ error }}</p>
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+  
+      <button type="submit" class="btn btn-success">Register</button>
+    </form>
+    {% endblock %}
+    
+    <p>Already a member? <a href="{% url 'login' %}">Login</a></p>
+</div>
+</body>
+</html>

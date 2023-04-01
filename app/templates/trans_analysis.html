@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.1/dist/echarts.min.js"></script>
+          
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="w-100" id="linechart" style="height: 50vh;"></div>
+
+  <div class="row">
+    <div class="col-sm-8">
+      <div class="chart w-100" id="barchart" style="height: 50vh;"></div>
+    </div>
+    <div class="col-sm-4">
+      <div class="chart w-100 mt-1" id="piechart" style="height: 50vh;"></div>
+    </div>
+  </div>
+
+</div>
+
+
+
+<script>
+
+       
+  $(document).ready(function() {
+    $.ajax({
+      url: "{% url 'transaction_summary' %}",
+      type: "GET",
+      dataType: "json",
+      success: function(response) {
+        var data = response;
+        var months = {};
+        for (var i = 0; i < data.expenses.length; i++) {
+          var month = new Date(data.expenses[i].month);
+          month = month.toLocaleString('default', { month: 'long', year: 'numeric' });
+          var amount = parseFloat(data.expenses[i].total);
+          if (!months[month]) {
+            months[month] = {};
+            months[month].expenses = 0;
+            months[month].incomes = 0;
+          }
+          months[month].expenses += amount;
+        }
+        for (var i = 0; i < data.incomes.length; i++) {
+          var month = new Date(data.incomes[i].month);
+          month = month.toLocaleString('default', { month: 'long', year: 'numeric' });
+          var amount = parseFloat(data.incomes[i].total);
+          if (!months[month]) {
+            months[month] = {};
+            months[month].expenses = 0;
+            months[month].incomes = 0;
+          }
+          months[month].incomes += amount;
+        }
+    
+        var chartData = {
+          xData: [],
+          expenseData: [],
+          incomeData: []
+        };
+        for (var month in months) {
+          chartData.xData.push(month);
+          chartData.expenseData.push(months[month].expenses);
+          chartData.incomeData.push(months[month].incomes);
+        }
+        chartData.xData.sort(function(a, b) {
+          return new Date(a) - new Date(b);
+        });
+    
+        var chart = echarts.init(document.getElementById("linechart"));
+        var options = {
+          title: {
+            text: "Income vs Expense"
+          },
+          tooltip: {
+            trigger: "axis",
+            axisPointer: {
+              type: "cross"
+            }
+          },
+          xAxis: {
+            type: "category",
+            data: chartData.xData,
+            axisLabel: {
+              formatter: function(value, index) {
+                return value;
+              }
+            }
+          },
+          yAxis: { type: "value" },
+          series: [{
+            name: "Expense",
+            type: "line",
+            data: chartData.expenseData,
+            smooth: true,
+            itemStyle: {
+              color: "#f44336"
+            },
+            lineStyle: {
+              width: 3,
+              color: "#f44336"
+            },
+            areaStyle: {
+              color: "#ffebee"
+            }
+          }, {
+            name: "Income",
+            type: "line",
+            data: chartData.incomeData,
+            smooth: true,
+            itemStyle: {
+              color: "#2196f3"
+            },
+            lineStyle: {
+              width: 3,
+              color: "#2196f3"
+            },
+            areaStyle: {
+              color: "#e3f2fd"
+            }
+          }]
+        };
+        chart.resize();
+        chart.setOption(options);        
+      }
+    });
+    
+    $.ajax({
+      url: "{% url 'expense_summary' %}",
+      type: "GET",
+      dataType: "json",
+      success: function(response) {
+        var data = response.expenses;
+        var months = {};
+        for (var i = 0; i < data.length; i++) {
+          var month = new Date(data[i].month);
+          month = month.toLocaleString('default', { month: 'long', year: 'numeric' });
+          var amount = parseFloat(data[i].total);
+          if (!months[month]) {
+            months[month] = 0;
+          }
+          months[month] += amount;
+        }
+        var chartData = {
+          xData: [],
+          yData: []
+        };
+        for (var month in months) {
+          chartData.xData.push(month);
+          chartData.yData.push(months[month]);
+        }
+        // Sort the chart data in ascending order based on xData array
+        chartData.xData.sort(function(a, b) {
+          return new Date(a) - new Date(b);
+        });
+    
+        var chart = echarts.init(document.getElementById("barchart"));
+        var options = {
+          title: {
+            text: "Monthly Expenses"
+          },
+          tooltip: {
+            trigger: "axis",
+            axisPointer: {
+              type: "cross"
+            }
+          },
+          xAxis: {
+            type: "category",
+            data: chartData.xData,
+            axisLabel: {
+              formatter: function(value, index) {
+                return value;
+              }
+            }
+          },
+          yAxis: { type: "value" },
+          series: [{
+            type: "bar",
+            data: chartData.yData,
+            itemStyle: {
+              color: "#009688"
+            },
+            itemStyle: { borderColor: 'transparent'},
+            label: {
+              show: true,
+              position: "top",
+              color: "#000",
+              fontSize: 14,
+              fontWeight: "bold"
+            }
+          }],
+        };
+        chart.resize();
+        chart.setOption(options);        
+      }
+    });
+    
+    $.ajax({
+        url: "{% url 'category_wise_expenses'%}",
+        type: "GET",
+        dataType: "json",
+        success: function(response) {
+          // Process the data and generate the chart
+          var data = response.data;
+          var categories = {};
+          for (var i = 0; i < data.length; i++) {
+            var category = data[i].category__name;
+            var amount = parseFloat(data[i].amount);
+            if (!categories[category]) {
+              categories[category] = 0;
+            }
+            categories[category] += amount;
+          }
+          var chartData = [];
+          for (var category in categories) {
+            chartData.push({
+              name: category,
+              value: categories[category]
+            });
+          }
+          var chart = echarts.init(document.getElementById("piechart"));
+          var options = {
+            title: {
+              text: "Transaction Categories",
+              left: "center",
+              top: 20
+            },
+            tooltip: {
+              trigger: "item",
+              formatter: "{a} <br/>{b}: {c} ({d}%)"
+            },
+            legend: {
+              orient: "vertical",
+              left: 0,
+              top: 60,
+              data: Object.keys(categories)
+            },
+            series: [{
+              name: "Transaction Categories",
+              type: "pie",
+              radius: "50%",
+              data: chartData
+            }]
+          };
+          chart.setOption(options);
+        },
+        error: function(xhr, status, error) {
+          console.error("Error:", error);
+        }
+      });
+
+
+    });
+  
+</script>
+{%  endblock %}
