@@ -46,5 +46,3 @@ License
 -------
 
 The Finance Manager application is licensed under the [MIT License]
-
-**Update:** A new version of the Finance Manager project (version 2) has been released and is available at [https://github.com/himaldahal/finance-manger/tree/V2](https://github.com/himaldahal/finance-manger/tree/V2).
