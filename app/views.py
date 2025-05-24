@@ -13,9 +13,10 @@ from django.urls import reverse_lazy
 from django.core import serializers
 from django.contrib.auth import login
 from django.db.models import Sum
-from django.http import *
+from django.http import *, HttpResponseForbidden
 from .models import *
 from .forms import *
+from django.core.exceptions import ValidationError
 
 
 class CustomLoginView(LoginView):
@@ -36,7 +37,7 @@ def create_transaction_type(request):
                 transaction_type.save()
                 return JsonResponse({'success': f"Transaction type '{name}' added successfully!"})
         else:
-            return JsonResponse({'error': "There was an error processing your request."})
+            return JsonResponse({'success': False, 'errors': form.errors.as_json()})
     else:
         form = TransactionTypeForm()
     return render(request, 'transaction_type_create.html', {'form': form})
@@ -76,21 +77,15 @@ def transaction_create_view(request):
         if form.is_valid():
             transaction = form.save(commit=False)
             transaction.transaction_of = request.user
-            balance = Balance.objects.filter(balance_of=request.user).first()
-            if balance is None:
-                balance = Balance(balance=0, balance_of=request.user)
-            if transaction.transaction_type == 'expense':
-                if transaction.amount > balance.balance:
-                    return JsonResponse({'success': False, 'message': 'Insufficient balance.'})
-                balance.balance -= transaction.amount
-            elif transaction.transaction_type == 'income':
-                balance.balance += transaction.amount
-            balance.save()
-            transaction.save()
-            return JsonResponse({'success': True})
+            try:
+                transaction.save() # Model's save method now handles balance
+                return JsonResponse({'success': True})
+            except ValidationError as e:
+                # Assuming e.message contains the error string from the model
+                return JsonResponse({'success': False, 'message': e.message if hasattr(e, 'message') else str(e)})
         else:
             errors = form.errors.as_json()
-            return JsonResponse({'success': False, 'errors': errors})  
+            return JsonResponse({'success': False, 'errors': errors})
 
 class TransactionUpdateView(UpdateView):
     model = Transaction
@@ -101,8 +96,13 @@ class TransactionUpdateView(UpdateView):
     def dispatch(self, request, *args, **kwargs):
         transaction = self.get_object()
         if request.user != transaction.transaction_of:
-            data = {'success': False, 'errors': 'Transaction doesn\'t exists.'}
-            return JsonResponse(data)
+            is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+            if is_ajax:
+                # Improved error message for AJAX requests
+                return JsonResponse({'success': False, 'errors': 'Permission denied. You do not have permission to edit this transaction.'})
+            else:
+                # Standard HTTP error for non-AJAX requests
+                return HttpResponseForbidden("You do not have permission to edit this transaction.")
 
         return super().dispatch(request, *args, **kwargs)
     def get_context_data(self, **kwargs):
@@ -118,7 +118,6 @@ class TransactionUpdateView(UpdateView):
             data = {'success': False, 'errors': form.errors}
         return JsonResponse(data)
 
-@csrf_exempt
 def delete_transaction(request, transaction_id):
     transaction = Transaction.objects.filter(id=transaction_id, transaction_of=request.user)
     if transaction.exists() == False:
@@ -134,11 +133,15 @@ def delete_transaction(request, transaction_id):
 def getBalace(request):
     trans_object = Transaction.objects.filter(transaction_of=request.user)
     transaction_amount = sum(trans.amount for trans in trans_object)
-    balance = Balance.objects.filter(balance_of=request.user).first()
-    if balance and balance.balance == 0:
-        data = { 'balance': '0.00', 'total_transaction': transaction_amount }
-    else:
-        data = { 'balance': str(balance) if balance else '0.00', 'total_transaction': transaction_amount }
+    balance_obj = Balance.objects.filter(balance_of=request.user).first()
+    current_balance_str = "0.00"
+    if balance_obj:
+        current_balance_str = f"{balance_obj.balance:.2f}" # Ensure two decimal places formatting
+
+    data = { 
+        'balance': current_balance_str, 
+        'total_transaction': transaction_amount 
+    }
     return JsonResponse(data)
 
 
@@ -197,7 +200,7 @@ def register(request):
             user.email = escape(user.email)
             user.first_name = escape(user.first_name)
             user.last_name = escape(user.last_name)
-            user.set_password(escape(user.password))
+            user.set_password(form.cleaned_data["password2"])
             user.save()
 
             messages.success(request, 'You have successfully registered!')
@@ -211,4 +214,3 @@ def register(request):
 
     context = {'form': form}
     return render(request, 'registration/register.html', context)
-
