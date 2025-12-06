@@ -21,7 +21,7 @@
           id="tranadd">Add Transaction</a>
       </div>
       <div class="col-md-6">
-         
+
         <form class="form-inline">
           <div class="form-group mb-2">
             <label for="start-date" >From</label>
@@ -33,14 +33,14 @@
           </div>
           <button  class="btn btn-secondary mb-2" id="filter-btn">Filter</button>
         </form>
-        
+
       </div>
     </div>
-    
+
     <div id="transdiv" style="overflow-x: auto;"></div>
    </div>
 
- 
+
   <script defer>
     $("#filter-btn").click(function() {
       $("form").submit(function(e){
@@ -56,9 +56,9 @@
         }
       });
     });
- 
+
     function loadtransaction() {
-     
+
 
       $.ajax({
         url: "{% url 'transaction_list' %}",
@@ -66,16 +66,17 @@
         success: function (data) {
           $('table').remove();
           var table = $('<table>').addClass('table');
-    
+
           var thead = $('<thead>');
           var tr = $('<tr>').addClass('h5');
           tr.append($('<th width="70">').text(' '));
           tr.append($('<th>').text('Name'));
           tr.append($('<th>').text('Amount'));
+          tr.append($('<th>').text('Account'));
           tr.append($('<th>').text('Category'));
           thead.append(tr);
           table.append(thead);
-    
+
           var tbody = $('<tbody class="h5 text-capitalize">');
           for (var i = 0; i < data.transactions.length; i++) {
             var transaction = data.transactions[i];
@@ -85,25 +86,28 @@
 
               tr.append($('<td>').html(`<img height="30" width="30" src="https://api.dicebear.com/6.x/icons/svg?seed=${transaction.category__name}&backgroundType=solid&backgroundColor=ce93d8"> <span class="text-danger">${transaction.name}</span>`));
               tr.append($('<td>').html(`<span class="text-danger">-${transaction.amount}</span>`));
+              tr.append($('<td>').html(`<span class="text-danger">${transaction.account__name}</span>`));
               tr.append($('<td>').html(`<span class="text-danger">${transaction.category__name}</span>`));
-            } 
+            }
             else if (transaction.transaction_type === 'income') {
               tr.append($('<td>').html(`<img height="30" width="30" src="https://api.dicebear.com/6.x/icons/svg?seed=${transaction.category__name}&backgroundType=gradientLinear&backgroundColor=ef9a9a"> <span class="text-success">${transaction.name}</span>`));
               tr.append($('<td>').html(`<span class="text-success">+${transaction.amount}</span>`));
+              tr.append($('<td>').html(`<span class="text-success">${transaction.account__name}</span>`));
               tr.append($('<td>').html(`<span class="text-success">${transaction.category__name}</span>`));
-            } 
+            }
             else {
               tr.append($('<td>').text(transaction.name));
               tr.append($('<td>').text(transaction.amount));
+              tr.append($('<td>').text(transaction.account__name));
               tr.append($('<td>').text(transaction.category__name));
             }
-    
+
             var actionHtml = `
               <a href="/${transaction.pk}/update/" class="text-primary h4 d-none"><i class="bi bi-pencil-square"></i></a>
-              <a a href="javascript:void(0)" onclick="confirmDelete('${transaction.pk}')" class="text-danger h4 d-none"><i class="bi bi-trash"></i></a>
+              <a href="javascript:void(0)" onclick="confirmDelete('${transaction.pk}')" class="text-danger h4 d-none"><i class="bi bi-trash"></i></a>
             `;
             tr.prepend($('<td>').html(actionHtml));
-    
+
             // show action icons on hover
             tr.hover(
               function () {
@@ -113,7 +117,7 @@
                 $(this).find('td:first-child a').addClass('d-none');
               }
             );
-    
+
             tbody.append(tr);
           }
           table.append(tbody);
@@ -121,7 +125,7 @@
         }
       });
     };
-    
+
     function confirmDelete(id) {
       // create a new div element for the confirmation dialog
       var confirmationDiv = $("<div>").addClass("modal fade")
@@ -129,7 +133,7 @@
         .attr("tabindex", "-1")
         .attr("aria-labelledby", "confirmation-modal-label")
         .attr("aria-hidden", "true");
-    
+
       // create the dialog elements
       var dialog = $("<div>").addClass("modal-dialog");
       var content = $("<div>").addClass("modal-content");
@@ -147,28 +151,30 @@
             success: function(data) {
               $("tr[data-transaction-id='" + id + "']").remove();
               $("#confirmation-modal").modal("hide");
+              loadtransaction();
+              load_balance();
             },
             error: function(jqXHR, textStatus, errorThrown) {
               console.log("Error: " + textStatus);
             }
           });
         }));
-    
+
       // assemble the dialog elements
       content.append(header).append(body).append(footer);
       dialog.append(content);
       confirmationDiv.append(dialog);
-    
+
       // add the confirmation modal to the DOM
       $("body").append(confirmationDiv);
-    
+
       // show the confirmation modal
       $("#confirmation-modal").modal("show");
     }
 
 
     $(document).ready(function () {
-    
+
       loadtransaction();
       $("#filter-input").on("keyup", function() {
         var value = $(this).val().toLowerCase();
@@ -187,8 +193,8 @@
           }
         }, 1000);
       });
-      
-   
+
+
     });
     $(document).on('click', '.delete-link', function(e) {
       $('table').remove();
@@ -196,11 +202,11 @@
       //{% csrf_token %}
       var csrf_token = '{{ csrf_token}}';
       var deleteUrl = $(this).attr('href');
-      
+
       $.ajax({
         url: deleteUrl,
         type: 'DELETE',
-        
+
         success: function(response) {
           load_balance();
           loadtransaction();
@@ -211,9 +217,8 @@
         }
       });
     });
-    
-  
+
+
   </script>
 
   {% endblock content %}
-  

@@ -2,7 +2,7 @@
 
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.1/dist/echarts.min.js"></script>
-          
+
 {% endblock %}
 
 {% block content %}
@@ -24,7 +24,7 @@
 
 <script>
 
-       
+
   $(document).ready(function() {
     $.ajax({
       url: "{% url 'transaction_summary' %}",
@@ -55,7 +55,7 @@
           }
           months[month].incomes += amount;
         }
-    
+
         var chartData = {
           xData: [],
           expenseData: [],
@@ -69,7 +69,7 @@
         chartData.xData.sort(function(a, b) {
           return new Date(a) - new Date(b);
         });
-    
+
         var chart = echarts.init(document.getElementById("linechart"));
         var options = {
           title: {
@@ -124,10 +124,10 @@
           }]
         };
         chart.resize();
-        chart.setOption(options);        
+        chart.setOption(options);
       }
     });
-    
+
     $.ajax({
       url: "{% url 'expense_summary' %}",
       type: "GET",
@@ -156,7 +156,7 @@
         chartData.xData.sort(function(a, b) {
           return new Date(a) - new Date(b);
         });
-    
+
         var chart = echarts.init(document.getElementById("barchart"));
         var options = {
           title: {
@@ -195,10 +195,10 @@
           }],
         };
         chart.resize();
-        chart.setOption(options);        
+        chart.setOption(options);
       }
     });
-    
+
     $.ajax({
         url: "{% url 'category_wise_expenses'%}",
         type: "GET",
@@ -255,6 +255,6 @@
 
 
     });
-  
+
 </script>
 {%  endblock %}
