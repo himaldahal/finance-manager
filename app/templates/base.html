@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>  {% if title %} Currency Exchange- {% endif%} FinanceManager</title>
-  
+
 
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2344/2344132.png">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js" ></script>
@@ -29,17 +29,17 @@
     /* font-family: 'Poppins', sans-serif; */
     font-family: var(--bs-font-sans-serif);
   }
-  
+
   .feather {
     width: 16px;
     height: 16px;
     vertical-align: text-bottom;
   }
-  
+
   /*
     * Sidebar
     */
-  
+
   .sidebar {
     position: fixed;
     top: 0;
@@ -53,13 +53,13 @@
     padding: 48px 0 0; /* Height of navbar */
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.1);
   }
-  
+
   @media (max-width: 767.98px) {
     .sidebar {
       top: 5rem;
     }
   }
-  
+
   .sidebar-sticky {
     position: relative;
     top: 0;
@@ -68,35 +68,35 @@
     overflow-x: hidden;
     overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
   }
-  
+
   .sidebar .nav-link {
     font-weight: 500;
     color: #333;
   }
-  
+
   .sidebar .nav-link .feather {
     margin-right: 4px;
     color: #727272;
   }
-  
+
   .sidebar .nav-link.active {
     color: #2470dc;
   }
-  
+
   .sidebar .nav-link:hover .feather,
   .sidebar .nav-link.active .feather {
     color: inherit;
   }
-  
+
   .sidebar-heading {
     font-size: 0.75rem;
     text-transform: uppercase;
   }
-  
+
   /*
     * Navbar
     */
-  
+
   .navbar-brand {
     padding-top: 0.75rem;
     padding-bottom: 0.75rem;
@@ -104,24 +104,24 @@
     background-color: rgba(0, 0, 0, 0.25);
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.25);
   }
-  
+
   .navbar .navbar-toggler {
     top: 0.25rem;
     right: 1rem;
   }
-  
+
   .navbar .form-control {
     padding: 0.75rem 1rem;
     border-width: 0;
     border-radius: 0;
   }
-  
+
   .form-control-dark {
     color: #fff;
     background-color: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.1);
   }
-  
+
   .form-control-dark:focus {
     border-color: transparent;
     box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
@@ -133,13 +133,13 @@
     -moz-user-select: none;
     user-select: none;
   }
-  
+
   @media (min-width: 768px) {
     .bd-placeholder-img-lg {
       font-size: 3.5rem;
     }
   }
-  
+
   #preloader {
     position: fixed;
     width: 100%;
@@ -149,7 +149,7 @@
     background-color: #fff;
     z-index: 9999;
   }
-  
+
   #loader {
     display: block;
     position: absolute;
@@ -163,7 +163,7 @@
     margin: -30px 0 0 -30px;
     animation: spin 0.6s linear infinite;
   }
-  
+
   @keyframes spin {
     0% {
       transform: rotate(0deg);
@@ -172,31 +172,31 @@
       transform: rotate(360deg);
     }
   }
-  
+
   .nav-link.active {
     color: #08a6c3;
   }
-  
+
 </style>
     {% block head%}{% endblock%}
-  </head> 
+  </head>
   <body>
     <div id="preloader">
       <div id="loader"></div>
     </div>
-    
- 
+
+
     <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow navbar-expand-md">
       <h3 class="navbar-brand col-md-3 col-lg-2 me-0 px-3 h2 h-100" style="background-color:rgb(33,37,41);" >
         <i class="bi bi-currency-dollar h3"></i> <span  id="balance-re" class="h2"></span>
       </h3>
-   
+
       <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse"
            data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
            <span class="navbar-toggler-icon"></span>
         </button>
-        
-        {% if request.path in '/' %} 
+
+        {% if request.path in '/' %}
         <input type="text" id="filter-input"style="background-color:rgb(33,37,41);" placeholder="Search by name" aria-label="Search"
         class="form-control text-white form-control-dark w-100"> {% endif %}
         <div class="navbar-nav">
@@ -204,7 +204,7 @@
            </div>
         </div>
      </header>
-  
+
      <div class="container-fluid">
       <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -227,10 +227,10 @@
            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
               <div class="position-sticky pt-3 mt-1">
                <div class="text-center mt-2">
-              
+
                 {% now "s" as current_second %}
                 {% if current_second|divisibleby:2 %}
-                     <img src="https://api.dicebear.com/5.x/thumbs/svg?seed={{ user.get_full_name }}"  alt="{{ user.get_full_name }} avatar"  
+                     <img src="https://api.dicebear.com/5.x/thumbs/svg?seed={{ user.get_full_name }}"  alt="{{ user.get_full_name }} avatar"
                      loading="lazy" class="img-fluid rounded w-25"
                        style="height:auto; border-radius:50px;" />
                 {% else %}
@@ -249,7 +249,13 @@
                           Transactions
                        </a>
                     </li>
-           
+                    <li class="nav-item">
+                      <a href="{% url 'account_create' %}" class="nav-link h5"><i class="bi bi-wallet2"></i> Create Account</a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="{% url 'category_create' %}" class="nav-link h5"><i class="bi bi-tags"></i> Create Category</a>
+                    </li>
+
                     <li class="nav-item">
                        <a class="nav-link {% if request.path == '/graph/' %} active {% endif %}  h5" href="{% url 'graph' %}"  >
                           <i class="bi bi-bar-chart-line"></i>
@@ -262,9 +268,9 @@
                    </li>
                    <li class="nav-item" id="mbl-lgbtn">
                   </li>
-                
+
                 </ul>
-                
+
               </div>
            </nav>
            <main class="col-md-9 ms-sm-auto col-lg-10  px-md-4 ms-5">
@@ -276,7 +282,7 @@
            </main>
         </div>
      </div>
-  
+
 
 
     <script src="https://getbootstrap.com/docs/5.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -284,23 +290,23 @@
       $(window).on('load', function() {
         $('#preloader').fadeOut('slow', function() {
           $(this).remove();
-          
+
         });
         const viewportWidth = $(window).width();
-        if (viewportWidth > 992) { 
+        if (viewportWidth > 992) {
           $("#lgbtn").html(`
-          <a style="background-color:rgb(33,37,41);" 
-          class="nav-link btn text-white" 
-          id="signout_btn" 
+          <a style="background-color:rgb(33,37,41);"
+          class="nav-link btn text-white"
+          id="signout_btn"
           data-bs-toggle="modal" data-bs-target="#logoutModal""
           >Logout
           <i class="bi bi-box-arrow-right"></i></a>`);
-    
+
         }else{
         $("#mbl-lgbtn").html(`<a class="nav-link h5 float-right" data-bs-toggle="modal" data-bs-target="#logoutModal"><i class="bi bi-box-arrow-right"></i>Logout </a>`);
         }
       });
-      
+
       function load_balance() {
         $.ajax({
           url: "{% url 'balance' %}",
@@ -316,7 +322,7 @@
       };
       load_balance();
     </script>
-    
-  
+
+
   </body>
   </html>

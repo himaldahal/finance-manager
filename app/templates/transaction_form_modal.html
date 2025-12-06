@@ -23,8 +23,8 @@
   <h5 class="modal-title h1">Add Transaction</h5>
   <p class="text-mute">Balance: <span id="balance-re"></span></p>
 <hr>
-      <form method="post" id="addtran">
-       {% csrf_token %} 
+      <form method="post" id="addtran" enctype="multipart/form-data">
+       {% csrf_token %}
        {{ form|crispy }}
          <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Add</button>
@@ -35,16 +35,16 @@
 
 <script defer>
 
- 
+
   var div = $('#div_id_category').children('div');
   div.addClass('input-group');
   $("#id_category").addClass("form-select");
   $('#div_id_category select').after(`<a  id="cat_add" class=' btn input-group-text'><i class="bi bi-plus-lg"></i></a>`);
 
   $(document).ready(function() {
-    
+
     $('#cat_add').on('click', function(e) {
-      var popup = window.open("{% url 'transaction_type_create' %}", '_blank', 'width=auto,height=500px');
+      var popup = window.open("{% url 'category_create' %}", '_blank', 'width=auto,height=500px');
       var intervalId = setInterval(function() {
         if (popup.closed) {
           location.reload();
@@ -52,7 +52,7 @@
         };
       }, 500);
     });
-    
+
 
     function load_balance() {
       $.ajax({
@@ -71,16 +71,19 @@
     $("#addtran").submit(function(e) {
       e.preventDefault();
       if (validateForm()) {
+        var formData = new FormData(this);
         $.ajax({
           url: "{% url 'transaction_create' %}",
           type: "POST",
           dataType: "json",
-          data: $("#addtran").serialize(),
+          data: formData,
+          processData: false,
+          contentType: false,
           success: function(data) {
             if (data.success) {
               Swal.fire('Congrats', 'Added Successfully', 'success');
               setTimeout(function() { window.close(); }, 2000);
-              
+
             } else {
               Swal.fire({
                 icon: 'error',
@@ -100,8 +103,8 @@
       }
     });
   });
-  
-  
+
+
   function validateForm() {
     var isValid = true;
     $("#addtran :input[required]").each(function() {
@@ -114,8 +117,7 @@
     });
     return isValid;
   }
-  
+
 </script>
 </body>
 </html>
-

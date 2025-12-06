@@ -17,7 +17,7 @@
 
     {% load crispy_forms_tags %}
 
-    
+
     {% block content %}
     <form method="POST" class="form-group mx-auto">
       {% csrf_token %}
@@ -29,11 +29,11 @@
           {% endfor %}
         {% endif %}
       {% endfor %}
-  
+
       <button type="submit" class="btn btn-success">Register</button>
     </form>
     {% endblock %}
-    
+
     <p>Already a member? <a href="{% url 'login' %}">Login</a></p>
 </div>
 </body>

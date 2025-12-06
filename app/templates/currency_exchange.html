@@ -24,10 +24,10 @@
     const amountInput = $("#amount");
     const resultInput = $("#result");
     const rowsDiv = $(".rows");
-  
+
     let exchangeRates;
     let baseCurrency = "USD";
-  
+
     // Fetch exchange rate data
     function fetchExchangeRates(base) {
       $.getJSON(`https://api.exchangerate-api.com/v4/latest/${base}`)
@@ -43,9 +43,9 @@
           resultInput.val("Error fetching exchange rates");
         });
     }
-  
+
     fetchExchangeRates(baseCurrency);
-  
+
     function summon() {
       const amount = parseFloat(amountInput.val());
       if (!isNaN(amount)) {
@@ -62,11 +62,11 @@
         resultInput.val("0.00");
       }
     }
-  
+
     amountInput.add(fromSelect).add(toSelect).on("change input", function() {
       summon();
     });
-  
+
     // Swap currencies
     $("#swap").click(function() {
       const from = fromSelect.val();
@@ -75,14 +75,14 @@
       toSelect.val(from);
       summon();
     });
-  
+
     const viewportWidth = $(window).width();
-    if (viewportWidth > 992) { 
+    if (viewportWidth > 992) {
       rowsDiv.addClass("w-25");
     }
   });
   </script>
-  
+
 
 {% endblock %}
 {% block footerclass %} mt-5 {% endblock %}

@@ -20,7 +20,7 @@
 <div class="container">
 <h1>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Transaction</h1>
 <br>
- <form method="post" id="update">
+ <form method="post" id="update" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form|crispy }}
 
@@ -31,7 +31,7 @@
 $(document).ready(function() {
 
 
-     
+
   var div = $('#div_id_category').children('div');
   div.removeClass('form-group');
   div.addClass('input-group');
@@ -39,7 +39,7 @@ $(document).ready(function() {
   $('#div_id_category select').after(`<a id="cat_add" class='btn input-group-text'><i class="bi bi-plus-lg"></i></a>`);
 
   $('#cat_add').on('click', function(e) {
-    var popup = window.open("{% url 'transaction_type_create' %}", '_blank', 'width=auto,height=500px');
+    var popup = window.open("{% url 'category_create' %}", '_blank', 'width=auto,height=500px');
     var intervalId = setInterval(function() {
       if (popup.closed) {
         location.reload();
@@ -51,11 +51,14 @@ $(document).ready(function() {
   $("#update").submit(function(e) {
     e.preventDefault();
     if (validateForm()) {
+      var formData = new FormData(this);
       $.ajax({
         url: "",
         type: "POST",
         dataType: "json",
-        data: $("#update").serialize(),
+        data: formData,
+        processData: false,
+        contentType: false,
         success: function(data) {
            Swal.fire('Congrats', 'Updated Successfully','success');
            setTimeout(function() { window.close();}, 5000);
@@ -67,7 +70,7 @@ $(document).ready(function() {
             text: 'Something went wrong!',
           });
           setTimeout(function() { window.close();}, 2000);
-          
+
 
         }
       });

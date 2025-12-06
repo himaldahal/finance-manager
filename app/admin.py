@@ -1,54 +1,57 @@
 from django.contrib import admin
-from .models import Balance, Transaction, TransactionType
-from django.forms import HiddenInput
 from django.contrib.auth import get_user_model
-from django import forms
+
+from .models import Account, Category, Transaction
 
 User = get_user_model()
 
 
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'amount', 'date', 'transaction_type',  'transaction_of','category')
-    class Meta:
-        model = Transaction
-        fields = '__all__'
-        widgets = {
-            'transaction_of': HiddenInput(),
-        }
+    list_display = ("name", "amount", "date", "transaction_type", "account", "category")
+    list_filter = ("transaction_type", "date", "category")
+    search_fields = ("name", "remarks")
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
-        form.base_fields["category"].queryset = TransactionType.objects.filter(added_by=request.user)
-        form.base_fields['transaction_of'].queryset = User.objects.filter(pk=request.user.pk)
-        form.base_fields['transaction_of'].initial = request.user.pk
-
+        form.base_fields["account"].queryset = Account.objects.filter(
+            owner=request.user
+        )
+        form.base_fields["category"].queryset = Category.objects.filter(
+            user=request.user
+        )
         return form
 
-    def get_queryset(self, request): 
-        qs = super().get_queryset(request) 
-        return qs.filter(category__added_by=request.user)
- 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(user=request.user)
 
-class TransactionTypeAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "parent", "user")
+    list_filter = ("user",)
+    search_fields = ("name",)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.filter(added_by=request.user)
+        return qs.filter(user=request.user)
 
 
-class BalanceAdmin(admin.ModelAdmin):
-    list_display = ('balance',)
+class AccountAdmin(admin.ModelAdmin):
+    list_display = ("name", "account_type", "balance", "owner")
+    list_filter = ("account_type",)
+    search_fields = ("name",)
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.filter(balance_of=request.user)
+        return qs.filter(owner=request.user)
+
 
 admin.site.register(Transaction, TransactionAdmin)
-admin.site.register(TransactionType, TransactionTypeAdmin)
-admin.site.register(Balance, BalanceAdmin)
+admin.site.register(Category, CategoryAdmin)
+admin.site.register(Account, AccountAdmin)
 
 
 # panel customization
-admin.site.site_header = 'Finance Manager Administration'
-admin.site.site_title = 'Finance Manager Admin'
-admin.site.index_title = 'Finance Manager Dashboard'
+admin.site.site_header = "Finance Manager Administration"
+admin.site.site_title = "Finance Manager Admin"
+admin.site.index_title = "Finance Manager Dashboard"
