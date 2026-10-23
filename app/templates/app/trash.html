@@ -1,0 +1,11 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}Trash{% endblock %}
+{% block heading %}Trash and history{% endblock %}
+{% block subheading %}<p class="sub">Deleted transactions stay here for {{ days }} days and can be restored.</p>{% endblock %}
+{% block actions %}<button class="btn btn-danger" type="button" id="empty-trash">{% icon "trash-2" %}Empty trash</button>{% endblock %}
+{% block content %}
+<section class="card" aria-labelledby="tr-h"><div class="card-head"><h2 id="tr-h">Deleted transactions</h2></div><div id="trash-list" class="loading">Loading...</div></section>
+<section class="card" aria-labelledby="act-h"><div class="card-head"><h2 id="act-h">Recent changes</h2></div><div id="activity-list" class="loading">Loading...</div></section>
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'app/js/trash.js' %}"></script>{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}Debts and sharing{% endblock %}
+{% block heading %}Debts and sharing{% endblock %}
+{% block subheading %}<p class="sub">Who owes whom. Lend, borrow or split a bill with someone and settle up later. No account needed for them.</p>{% endblock %}
+{% block actions %}<button class="btn btn-primary" type="button" id="new-person">{% icon "plus" %}Add a person</button>{% endblock %}
+{% block content %}
+<section class="grid cols-2" id="people-totals" aria-label="Totals"></section>
+<div id="people-list" class="goal-grid loading">Loading...</div>
+
+<dialog id="person-dialog" aria-labelledby="person-title">
+  <form id="person-form" method="dialog" novalidate>
+    <div class="dialog-head"><h2 id="person-title">Add a person</h2><button class="icon-btn" type="button" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="dialog-body"><div class="form-error" data-form-error role="alert" hidden></div>
+      <div class="field"><label for="person-name">Name</label><input id="person-name" name="name" type="text" maxlength="60" required autocomplete="off"><p class="field-error" data-error-for="name"></p></div></div>
+    <div class="dialog-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit" data-submit>Save</button></div>
+  </form>
+</dialog>
+
+<dialog id="entry-dialog" aria-labelledby="entry-title" data-today="{{ today|date:'Y-m-d' }}">
+  <form id="entry-form" method="dialog" novalidate>
+    <div class="dialog-head"><h2 id="entry-title">Add entry</h2><button class="icon-btn" type="button" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="dialog-body"><div class="form-error" data-form-error role="alert" hidden></div>
+      <div class="field"><label for="entry-kind">What happened?</label>
+        <select id="entry-kind" name="kind">{% for value, label in kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select><p class="field-error" data-error-for="kind"></p></div>
+      <div class="form-grid">
+        <div class="field" data-for="amount"><label for="entry-amount">Amount</label><input id="entry-amount" name="amount" type="text" data-money inputmode="decimal"><p class="field-error" data-error-for="amount"></p></div>
+        <div class="field" data-for="total" hidden><label for="entry-total">Whole bill</label><input id="entry-total" name="total" type="text" data-money inputmode="decimal"><p class="field-error" data-error-for="total"></p></div>
+        <div class="field" data-for="share" hidden><label for="entry-share">Your share</label><input id="entry-share" name="my_share" type="text" data-money inputmode="decimal"><p class="help">Leave empty to split equally.</p><p class="field-error" data-error-for="my_share"></p></div>
+        <div class="field"><label for="entry-date">Date</label><input id="entry-date" name="date" type="date"><p class="field-error" data-error-for="date"></p></div>
+        <div class="field" data-for="due"><label for="entry-due">Due date (optional)</label><input id="entry-due" name="due_date" type="date"><p class="field-error" data-error-for="due_date"></p></div>
+        <div class="field wide"><label for="entry-desc">Note (optional)</label><input id="entry-desc" name="description" type="text" maxlength="120"><p class="field-error" data-error-for="description"></p></div>
+      </div></div>
+    <div class="dialog-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit" data-submit>Save</button></div>
+  </form>
+</dialog>
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'app/js/people.js' %}"></script>{% endblock %}

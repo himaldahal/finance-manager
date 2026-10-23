@@ -1,0 +1,87 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}Categories{% endblock %}
+{% block heading %}Categories{% endblock %}
+{% block subheading %}<p class="sub">Categories, sub-categories, auto-categorise rules and tags.</p>{% endblock %}
+{% block actions %}<button class="btn btn-primary" type="button" id="new-category">{% icon "plus" %}New category</button>{% endblock %}
+{% block content %}
+<section class="card" aria-labelledby="cat-h">
+  <div class="card-head"><h2 id="cat-h">Categories</h2></div>
+  <div id="category-list" class="loading">Loading...</div>
+</section>
+
+<div class="grid cols-2">
+  <section class="card" aria-labelledby="rules-h">
+    <div class="card-head"><h2 id="rules-h">Auto-categorise rules</h2><button class="btn btn-sm" type="button" id="new-rule">{% icon "plus" %}New rule</button></div>
+    <p class="muted small">When a description or payee contains the text, the category is chosen for you (when you leave it blank, and on CSV import). The first matching rule by priority wins.</p>
+    <div id="rule-list" class="loading">Loading...</div>
+  </section>
+  <section class="card" aria-labelledby="tags-h">
+    <div class="card-head"><h2 id="tags-h">Tags</h2></div>
+    <p class="muted small">Tags are free-form labels you add to transactions. They are created when you type them.</p>
+    <div id="tag-list" class="loading">Loading...</div>
+  </section>
+</div>
+
+<dialog id="cat-dialog" aria-labelledby="cat-title">
+  <form id="cat-form" method="dialog" novalidate>
+    <div class="dialog-head"><h2 id="cat-title">New category</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="dialog-body">
+      <div class="form-error" data-form-error role="alert" hidden></div>
+      <div class="form-grid">
+        <div class="field wide"><label for="cat-name">Name</label><input id="cat-name" name="name" type="text" maxlength="50" required autocomplete="off"><p class="field-error" data-error-for="name"></p></div>
+        <div class="field"><label for="cat-kind">Used for</label>
+          <select id="cat-kind" name="kind"><option value="both">Income and expense</option><option value="expense">Expense only</option><option value="income">Income only</option></select>
+          <p class="field-error" data-error-for="kind"></p></div>
+        <div class="field"><label for="cat-parent">Parent category</label>
+          <select id="cat-parent" name="parent"><option value="">None (top level)</option></select>
+          <p class="field-error" data-error-for="parent"></p></div>
+      </div>
+      <fieldset class="field">
+        <legend>Colour</legend>
+        <div class="swatches" role="radiogroup" aria-label="Colour">
+          {% for value, label in colors %}<label title="{{ label }}"><input type="radio" name="color" value="{{ value }}"{% if forloop.first %} checked{% endif %}><span class="tone-{{ value }}"></span><span class="sr-only">{{ label }}</span></label>{% endfor %}
+        </div>
+        <p class="field-error" data-error-for="color"></p>
+      </fieldset>
+      <fieldset class="field">
+        <legend>Icon</legend>
+        <div class="icon-grid" role="radiogroup" aria-label="Icon">
+          {% for name in icons %}<label title="{{ name }}"><input type="radio" name="icon" value="{{ name }}"{% if forloop.first %} checked{% endif %}><span>{% icon name %}</span><span class="sr-only">{{ name }}</span></label>{% endfor %}
+        </div>
+        <p class="field-error" data-error-for="icon"></p>
+      </fieldset>
+    </div>
+    <div class="dialog-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit" data-submit>Save</button></div>
+  </form>
+</dialog>
+
+<dialog id="del-dialog" aria-labelledby="del-title">
+  <form id="del-form" method="dialog" novalidate>
+    <div class="dialog-head"><h2 id="del-title">Delete category</h2></div>
+    <div class="dialog-body">
+      <p id="del-message"></p>
+      <div class="form-error" data-form-error role="alert" hidden></div>
+      <div class="field" id="del-reassign" hidden><label for="del-target">Move them to</label><select id="del-target" name="reassign_to"></select><p class="field-error" data-error-for="reassign_to"></p></div>
+    </div>
+    <div class="dialog-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-danger" type="submit" data-submit>Delete category</button></div>
+  </form>
+</dialog>
+
+<dialog id="rule-dialog" aria-labelledby="rule-title">
+  <form id="rule-form" method="dialog" novalidate>
+    <div class="dialog-head"><h2 id="rule-title">New rule</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="dialog-body">
+      <div class="form-error" data-form-error role="alert" hidden></div>
+      <div class="field"><label for="rule-pattern">When the description or payee contains</label><input id="rule-pattern" name="pattern" type="text" maxlength="60" required autocomplete="off"><p class="field-error" data-error-for="pattern"></p></div>
+      <div class="field"><label for="rule-category">Use this category</label><select id="rule-category" name="category" required></select><p class="field-error" data-error-for="category"></p></div>
+      <div class="field"><label for="rule-priority">Priority</label><input id="rule-priority" name="priority" type="number" min="1" max="999" value="100"><p class="help">Lower numbers are checked first.</p><p class="field-error" data-error-for="priority"></p></div>
+      <div class="field"><label class="check"><input type="checkbox" name="active" checked> Rule is active</label></div>
+    </div>
+    <div class="dialog-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit" data-submit>Save</button></div>
+  </form>
+</dialog>
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'app/js/categories.js' %}"></script>{% endblock %}

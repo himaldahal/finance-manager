@@ -1,0 +1,17 @@
+{% extends "registration/base_auth.html" %}
+{% load static %}
+{% block title %}Sign in{% endblock %}
+{% block content %}
+<h1>Sign in</h1>
+{% if locked %}<p class="form-error" role="alert">Too many failed sign-in attempts. Try again in a few minutes.</p>{% endif %}
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="form-error" role="alert">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>{% endif %}
+  {% include "app/_field.html" with field=form.username %}
+  {% include "app/_field.html" with field=form.password %}
+  <input type="hidden" name="next" value="{{ next }}">
+  <button class="btn btn-primary" type="submit">Sign in</button>
+</form>
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'app/js/password.js' %}"></script>{% endblock %}
+{% block footer %}{% if allow_registration %}No account? <a href="{% url 'register' %}">Create one</a>{% endif %}{% endblock %}

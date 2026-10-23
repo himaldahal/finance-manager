@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        django: ["4.2", "5.2"]
+        exclude:
+          # Django 5.x needs Python 3.10 or newer; Django 4.2 does not officially support 3.13
+          - python: "3.9"
+            django: "5.2"
+          - python: "3.13"
+            django: "4.2"
+    env:
+      DEBUG: "0"
+      SECRET_KEY: "ci-Qx7!aB9#-ci-Qx7!aB9#-ci-Qx7!aB9#-ci-Qx7!aB9#-ci-Qx7!aB9#"
+      ALLOWED_HOSTS: "money.example.com"
+      DATABASE_PATH: "${{ runner.temp }}/ci.sqlite3"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "Django~=${{ matrix.django }}.0"
+      - name: Migrate
+        run: python manage.py migrate
+      - name: Deployment checks (production-like environment)
+        run: python manage.py check --deploy --fail-level WARNING
+      - name: Migrations are up to date
+        run: python manage.py makemigrations --check --dry-run
+      - name: Tests
+        run: python manage.py test --failfast
+      - name: Hygiene (dashes and forbidden words)
+        run: bash scripts/check_hygiene.sh

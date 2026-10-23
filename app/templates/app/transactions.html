@@ -1,0 +1,69 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}Transactions{% endblock %}
+{% block heading %}Transactions{% endblock %}
+{% block actions %}
+<a class="btn" id="export-link" href="{% url 'export' %}?{{ flt.query_string }}" download>{% icon "download" %}Export CSV</a>
+<button class="btn btn-primary" type="button" data-new-transaction>{% icon "plus" %}Add transaction <kbd>n</kbd></button>
+{% endblock %}
+{% block content %}
+<div class="views-bar" id="views-bar">
+  <label class="sr-only" for="views-select">Saved views</label>
+  <select id="views-select"><option value="">Saved views</option></select>
+  <button class="btn btn-sm" type="button" id="view-save">{% icon "bookmark" %}Save current filters</button>
+  <button class="btn btn-quiet btn-sm" type="button" id="view-delete" hidden>{% icon "trash-2" %}Delete view</button>
+</div>
+<form class="card" id="filters" method="get" action="{% url 'transactions' %}" role="search" aria-label="Filter transactions">
+  <div class="filters">
+    <div class="field span2"><label for="search">Search</label><input id="search" name="q" type="search" value="{{ flt.q }}" maxlength="100" placeholder="Description, note or category" autocomplete="off"></div>
+    <div class="field"><label for="f-type">Type</label>
+      <select id="f-type" name="type"><option value="">All</option><option value="expense"{% if flt.kind == 'expense' %} selected{% endif %}>Expenses</option><option value="income"{% if flt.kind == 'income' %} selected{% endif %}>Income</option></select></div>
+    <div class="field"><label for="f-category">Category</label>
+      <select id="f-category" name="category"><option value="">All</option>{% for c in categories %}<option value="{{ c.pk }}"{% if flt.category == c.pk %} selected{% endif %}>{{ c.full_name }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="f-tag">Tag</label>
+      <select id="f-tag" name="tag"><option value="">All</option>{% for t in tag_list %}<option value="{{ t.pk }}"{% if flt.tag == t.pk %} selected{% endif %}>{{ t.name }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="f-account">Account</label>
+      <select id="f-account" name="account"><option value="">All</option>{% for a in accounts %}<option value="{{ a.pk }}"{% if flt.account == a.pk %} selected{% endif %}>{{ a.name }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="f-payee">Payee</label><input id="f-payee" name="payee" type="text" value="{{ flt.payee }}" maxlength="80" list="payee-options" autocomplete="off"></div>
+    <div class="field"><label class="check notes-check"><input type="checkbox" name="has_notes" value="1"{% if flt.has_notes %} checked{% endif %}> Has notes</label></div>
+    <div class="field"><label for="f-from">From</label><input id="f-from" name="date_from" type="date" value="{{ flt.date_from|date:'Y-m-d' }}"></div>
+    <div class="field"><label for="f-to">To</label><input id="f-to" name="date_to" type="date" value="{{ flt.date_to|date:'Y-m-d' }}"></div>
+    <div class="field"><label for="f-min">Min amount</label><input id="f-min" name="min_amount" type="number" min="0" step="0.01" value="{{ flt.min_amount|default_if_none:'' }}"></div>
+    <div class="field"><label for="f-max">Max amount</label><input id="f-max" name="max_amount" type="number" min="0" step="0.01" value="{{ flt.max_amount|default_if_none:'' }}"></div>
+    <div class="field"><label for="f-sort">Sort</label>
+      <select id="f-sort" name="sort">
+        {% for value, label in sort_options %}<option value="{{ value }}"{% if flt.sort == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select></div>
+    <div class="field"><label for="f-size">Per page</label>
+      <select id="f-size" name="page_size">{% for n in page_sizes %}<option value="{{ n }}"{% if flt.page_size == n %} selected{% endif %}>{{ n }}</option>{% endfor %}</select></div>
+  </div>
+  <div class="filter-foot">
+    <span class="muted small" id="filter-status" aria-live="polite"></span>
+    <span class="actions"><a class="btn btn-quiet btn-sm" href="{% url 'transactions' %}" id="clear-filters">Clear filters</a><button class="btn btn-sm" type="submit">Apply</button></span>
+  </div>
+</form>
+<details class="card reconcile" id="reconcile">
+  <summary>Reconcile with a bank statement</summary>
+  <p class="muted small">Tick the transactions that appear on your statement and use "Mark reconciled". The difference should reach zero.</p>
+  <div class="range-bar">
+    <div class="field"><label for="rec-acct">Account</label><select id="rec-acct">{% for a in accounts %}<option value="{{ a.pk }}">{{ a.name }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="rec-balance">Statement balance</label><input id="rec-balance" type="text" data-money data-signed inputmode="decimal"></div>
+    <button class="btn" type="button" id="rec-check">Check</button>
+    <p class="muted" id="rec-result" aria-live="polite"></p>
+  </div>
+</details>
+<div id="results" aria-live="polite">{% include "app/_transactions_results.html" %}</div>
+
+<dialog id="view-dialog" aria-labelledby="view-title">
+  <form id="view-form" method="dialog" novalidate>
+    <div class="dialog-head"><h2 id="view-title">Save current filters</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="dialog-body">
+      <div class="form-error" data-form-error role="alert" hidden></div>
+      <div class="field"><label for="view-name">View name</label><input id="view-name" name="name" type="text" maxlength="60" required autocomplete="off"><p class="field-error" data-error-for="name"></p></div>
+    </div>
+    <div class="dialog-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit" data-submit>Save view</button></div>
+  </form>
+</dialog>
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'app/js/transactions.js' %}"></script>{% endblock %}

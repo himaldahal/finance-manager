@@ -1,0 +1,47 @@
+{% extends "app/base.html" %}
+{% block title %}Welcome{% endblock %}
+{% block heading %}Welcome, let us set things up{% endblock %}
+{% block subheading %}<p class="sub">Four quick choices. You can change all of them later in Settings.</p>{% endblock %}
+{% block content %}
+<form method="post" class="setup" novalidate>
+  {% csrf_token %}
+  {% if form.errors %}<div class="form-error" role="alert">Please check the highlighted fields.</div>{% endif %}
+  <section class="card">
+    <h2>1. Your currency</h2>
+    <div class="form-grid">
+      {% include "app/_field.html" with field=form.currency_code %}
+      {% include "app/_field.html" with field=form.currency_symbol %}
+      {% include "app/_field.html" with field=form.number_format wide=True %}
+    </div>
+  </section>
+  <section class="card">
+    <h2>2. Where your money is</h2>
+    <p class="muted small">Enter what you have right now. The balance is worked out from this plus your transactions.</p>
+    <div class="form-grid">
+      {% include "app/_field.html" with field=form.main_name %}
+      {% include "app/_field.html" with field=form.main_opening %}
+      {% include "app/_field.html" with field=form.cash %}
+      {% include "app/_field.html" with field=form.cash_opening %}
+      {% include "app/_field.html" with field=form.wallet %}
+      {% include "app/_field.html" with field=form.wallet_opening %}
+    </div>
+  </section>
+  <section class="card">
+    <h2>3. Categories to start with</h2>
+    <p class="muted small">Untick any you will not use. You can add your own later.</p>
+    <div class="check-grid">
+      {% for value, label in form.fields.categories.choices %}
+      <label class="check"><input type="checkbox" name="categories" value="{{ value }}"{% if value in form.categories.value %} checked{% endif %}> {{ label }}</label>
+      {% endfor %}
+    </div>
+  </section>
+  <section class="card">
+    <h2>4. Optional extras</h2>
+    {% include "app/_field.html" with field=form.monthly_budget %}
+    <p class="help">A single limit for all spending this month. Per-category budgets can be added on the Budgets page.</p>
+    {% include "app/_field.html" with field=form.sample_data %}
+    <p class="help">Replaces the choices above with a year of example data. You can erase it later in Settings.</p>
+  </section>
+  <p class="actions"><button class="btn btn-primary" type="submit">Finish setup</button><button class="btn btn-quiet" type="submit" name="skip" value="1" formnovalidate>Skip for now</button></p>
+</form>
+{% endblock %}

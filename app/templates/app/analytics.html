@@ -1,0 +1,91 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}Analytics{% endblock %}
+{% block heading %}Analytics{% endblock %}
+{% block actions %}<a class="btn" href="{% url 'reports' %}">{% icon "file-text" %}Reports</a>{% endblock %}
+{% block content %}
+<form class="card range-bar" id="range-form" data-start="{{ start|date:'Y-m-d' }}" data-end="{{ end|date:'Y-m-d' }}">
+  <div class="field"><label for="r-start">From</label><input id="r-start" name="start" type="date" required></div>
+  <div class="field"><label for="r-end">To</label><input id="r-end" name="end" type="date" required></div>
+  <div class="field"><label for="r-preset">Quick range</label>
+    <select id="r-preset"><option value="">Custom</option><option value="month">This month</option><option value="last-month">Last month</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option><option value="year">This year</option><option value="365">Last 12 months</option></select></div>
+  <div class="field"><label for="r-category">Category</label>
+    <select id="r-category" name="category"><option value="">All</option>{% for c in categories %}<option value="{{ c.pk }}">{{ c.full_name }}</option>{% endfor %}</select></div>
+  <div class="field"><label for="r-tag">Tag</label>
+    <select id="r-tag" name="tag"><option value="">All</option>{% for t in tag_list %}<option value="{{ t.pk }}">{{ t.name }}</option>{% endfor %}</select></div>
+  <p class="muted small range-note" id="range-note"></p>
+</form>
+<div id="analytics-error" hidden></div>
+<div class="grid cols-4" id="totals"></div>
+
+<div class="card chart-card" data-chart-card="monthly">
+  <div class="card-head"><h2>Income and expenses by month</h2><button class="btn btn-sm" type="button" data-toggle-table aria-pressed="false">Show table</button></div>
+  <div class="legend"><span><i class="l-income"></i>Income</span><span><i class="l-expense"></i>Expenses</span></div>
+  <div class="chart-box" data-chart></div>
+</div>
+<div class="grid cols-2">
+  <div class="card chart-card" data-chart-card="netflow">
+    <div class="card-head"><h2>Net cash flow</h2><button class="btn btn-sm" type="button" data-toggle-table aria-pressed="false">Show table</button></div>
+    <div class="chart-box" data-chart></div>
+  </div>
+  <div class="card chart-card" data-chart-card="stacked">
+    <div class="card-head"><h2>Spending by category over time</h2><button class="btn btn-sm" type="button" data-toggle-table aria-pressed="false">Show table</button></div>
+    <div class="chart-box" data-chart></div>
+  </div>
+</div>
+<div class="grid cols-2">
+  <div class="card chart-card" data-chart-card="donut">
+    <div class="card-head"><h2>Expenses by category</h2><button class="btn btn-sm" type="button" data-toggle-table aria-pressed="false">Show table</button></div>
+    <div class="chart-box" data-chart></div>
+  </div>
+  <div class="card chart-card" data-chart-card="ranked">
+    <div class="card-head"><h2>Ranked categories</h2><button class="btn btn-sm" type="button" data-toggle-table aria-pressed="false">Show table</button></div>
+    <div class="chart-box" data-chart></div>
+  </div>
+</div>
+<div class="card chart-card" data-chart-card="sparks">
+  <div class="card-head"><h2>Category trends, last 12 months</h2><button class="btn btn-sm" type="button" data-toggle-table aria-pressed="false">Show table</button></div>
+  <div class="chart-box" data-chart></div>
+</div>
+<div class="card chart-card" data-chart-card="heatmap">
+  <div class="card-head"><h2>Daily spending, last 26 weeks</h2><button class="btn btn-sm" type="button" data-toggle-table aria-pressed="false">Show table</button></div>
+  <div class="chart-box" data-chart></div>
+</div>
+<div class="grid cols-2">
+  <div class="card chart-card" data-chart-card="weekday">
+    <div class="card-head"><h2>Spending by weekday</h2><button class="btn btn-sm" type="button" data-toggle-table aria-pressed="false">Show table</button></div>
+    <div class="chart-box" data-chart></div>
+  </div>
+  <div class="card chart-card" data-chart-card="cumulative">
+    <div class="card-head"><h2>Month spending against budget</h2><button class="btn btn-sm" type="button" data-toggle-table aria-pressed="false">Show table</button></div>
+    <div class="legend"><span><i class="l-expense"></i>Spent so far</span><span><i class="l-line"></i>Budget</span></div>
+    <div class="chart-box" data-chart></div>
+  </div>
+</div>
+<div class="grid cols-2">
+  <div class="card chart-card" data-chart-card="budget">
+    <div class="card-head"><h2>Budget and actual</h2><button class="btn btn-sm" type="button" data-toggle-table aria-pressed="false">Show table</button></div>
+    <div class="legend"><span><i class="l-line"></i>Budget</span><span><i class="l-expense"></i>Spent</span></div>
+    <div class="chart-box" data-chart></div>
+  </div>
+  <div class="card chart-card" data-chart-card="goals">
+    <div class="card-head"><h2>Savings goals</h2><button class="btn btn-sm" type="button" data-toggle-table aria-pressed="false">Show table</button></div>
+    <div class="chart-box" data-chart></div>
+  </div>
+</div>
+<div class="card chart-card" data-chart-card="balance">
+  <div class="card-head"><h2>Balance over time</h2><button class="btn btn-sm" type="button" data-toggle-table aria-pressed="false">Show table</button></div>
+  <div class="chart-box" data-chart></div>
+</div>
+<div class="grid cols-2">
+  <div class="card chart-card" data-chart-card="payees">
+    <div class="card-head"><h2>Top payees</h2><button class="btn btn-sm" type="button" data-toggle-table aria-pressed="false">Show table</button></div>
+    <div class="chart-box" data-chart></div>
+  </div>
+  <div class="card chart-card">
+    <div class="card-head"><h2>Top 5 expenses</h2></div>
+    <div id="top-list"></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'app/js/analytics.js' %}"></script>{% endblock %}

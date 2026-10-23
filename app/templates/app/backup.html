@@ -1,0 +1,22 @@
+{% extends "app/base.html" %}
+{% block title %}Backup{% endblock %}
+{% block heading %}Backup and restore{% endblock %}
+{% block subheading %}<p class="sub">Everything you have entered, in one file you own.</p>{% endblock %}
+{% block content %}
+<div class="grid cols-2">
+  <section class="card">
+    <div class="card-head"><h2>Download a backup</h2></div>
+    <p class="muted">A JSON file with your accounts, categories, transactions, budgets, goals, bills, people and settings. Keep it somewhere safe.</p>
+    <p><a class="btn btn-primary" href="{% url 'backup_export' %}" download>{% icon "download" %}Download backup (JSON)</a></p>
+  </section>
+  <form class="card" method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    <div class="card-head"><h2>Restore from a backup</h2></div>
+    {% if problems %}<div class="form-error" role="alert"><strong>This backup cannot be used.</strong><ul>{% for p in problems %}<li>{{ p }}</li>{% endfor %}</ul></div>{% endif %}
+    {% if summary %}<div class="notice success"><strong>The file is valid.</strong> It holds {{ summary.transactions }} transactions, {{ summary.accounts }} accounts, {{ summary.categories }} categories, {{ summary.budgets }} budgets, {{ summary.goals }} goals, {{ summary.recurring }} bills and {{ summary.people }} people.</div>{% endif %}
+    <div class="field"><label for="backup-file">Backup file</label><input id="backup-file" name="file" type="file" accept="application/json,.json" required></div>
+    <div class="field"><label class="check"><input type="checkbox" name="confirm"> I understand that restoring replaces all of my current data</label></div>
+    <p class="actions"><button class="btn" type="submit" name="check" value="1">Check file</button><button class="btn btn-danger" type="submit" name="restore" value="1">Restore</button></p>
+  </form>
+</div>
+{% endblock %}

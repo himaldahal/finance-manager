@@ -1,54 +1,40 @@
 from django.contrib import admin
-from .models import Balance, Transaction, TransactionType
-from django.forms import HiddenInput
-from django.contrib.auth import get_user_model
-from django import forms
 
-User = get_user_model()
+from . import models as m
 
 
+@admin.register(m.Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "user", "kind", "color", "parent")
+    list_filter = ("kind",)
+    search_fields = ("name", "user__username")
+
+
+@admin.register(m.Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'amount', 'date', 'transaction_type',  'transaction_of','category')
-    class Meta:
-        model = Transaction
-        fields = '__all__'
-        widgets = {
-            'transaction_of': HiddenInput(),
-        }
-
-    def get_form(self, request, obj=None, **kwargs):
-        form = super().get_form(request, obj, **kwargs)
-        form.base_fields["category"].queryset = TransactionType.objects.filter(added_by=request.user)
-        form.base_fields['transaction_of'].queryset = User.objects.filter(pk=request.user.pk)
-        form.base_fields['transaction_of'].initial = request.user.pk
-
-        return form
-
-    def get_queryset(self, request): 
-        qs = super().get_queryset(request) 
-        return qs.filter(category__added_by=request.user)
- 
-
-class TransactionTypeAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ("name", "amount", "kind", "date", "category", "user", "deleted_at")
+    list_filter = ("kind", "date")
+    search_fields = ("name", "payee", "user__username")
+    raw_id_fields = ("user", "category", "recurring", "account")
 
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.filter(added_by=request.user)
+        return m.Transaction.all_objects.all()
 
 
-class BalanceAdmin(admin.ModelAdmin):
-    list_display = ('balance',)
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.filter(balance_of=request.user)
+for model, columns in (
+    (m.Account, ("name", "type", "opening_balance", "user", "archived")),
+    (m.Tag, ("name", "user")),
+    (m.Budget, ("category", "month", "amount", "user")),
+    (m.CategoryRule, ("pattern", "category", "priority", "active", "user")),
+    (m.Transfer, ("from_account", "to_account", "amount", "date", "user")),
+    (m.Goal, ("name", "target_amount", "target_date", "user")),
+    (m.Contribution, ("goal", "amount", "date")),
+    (m.RecurringTransaction, ("name", "amount", "kind", "frequency", "next_due", "active", "user")),
+    (m.Profile, ("user", "currency_code", "number_format")),
+    (m.SavedView, ("name", "user")),
+):
+    admin.site.register(model, type(f"{model.__name__}Admin", (admin.ModelAdmin,), {"list_display": columns}))
 
-admin.site.register(Transaction, TransactionAdmin)
-admin.site.register(TransactionType, TransactionTypeAdmin)
-admin.site.register(Balance, BalanceAdmin)
-
-
-# panel customization
-admin.site.site_header = 'Finance Manager Administration'
-admin.site.site_title = 'Finance Manager Admin'
-admin.site.index_title = 'Finance Manager Dashboard'
+admin.site.site_header = "Finance Manager administration"
+admin.site.site_title = "Finance Manager admin"
+admin.site.index_title = "Administration"

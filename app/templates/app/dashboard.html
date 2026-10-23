@@ -1,0 +1,82 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}Dashboard{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+{% block subheading %}<p class="sub"><span id="month-label"></span> <span class="muted" id="updated" aria-live="polite"></span></p>{% endblock %}
+{% block actions %}<button class="btn btn-primary" type="button" data-new-transaction>{% icon "plus" %}Add transaction <kbd>n</kbd></button>{% endblock %}
+{% block content %}
+<form class="quick-add" id="quick-add" autocomplete="off" aria-label="Quick add">
+  <label class="sr-only" for="quick-input">Quick add a transaction</label>
+  <div class="quick-row">
+    {% icon "wand-sparkles" %}
+    <input id="quick-input" type="text" placeholder="Quick add: coffee 150 food, or salary +90000" maxlength="160">
+    <button class="btn" type="submit">Preview</button>
+  </div>
+  <div id="quick-preview" class="quick-preview" aria-live="polite" hidden></div>
+  <p class="help">Type a description, an amount and optionally a category. Add "yesterday" for the date, or start the amount with + for income.</p>
+</form>
+
+<section id="onboarding" class="card" hidden aria-labelledby="onb-h">
+  <div class="card-head"><h2 id="onb-h">Getting started</h2><button class="btn btn-quiet btn-sm" type="button" id="onb-dismiss">Dismiss</button></div>
+  <ul class="checklist" id="onb-list"></ul>
+  <p id="onb-sample" hidden><button class="btn btn-sm" type="button" id="load-sample">Load sample data</button> <span class="muted small">Adds a year of example transactions, budgets and goals so you can look around.</span></p>
+</section>
+
+<section id="alerts" class="card" hidden aria-labelledby="alerts-h">
+  <div class="card-head"><h2 id="alerts-h">Alerts</h2></div>
+  <ul class="alert-list" id="alert-list"></ul>
+</section>
+
+<section id="insights" class="card insights" hidden aria-labelledby="ins-h">
+  <div class="card-head"><h2 id="ins-h">How you are doing</h2><a href="{% url 'digest' %}">Weekly digest</a></div>
+  <ul class="insight-list" id="insight-list"></ul>
+</section>
+
+<section aria-labelledby="sum-h">
+  <h2 class="sr-only" id="sum-h">Summary</h2>
+  <div class="grid cols-4" id="summary">
+    <div class="card stat" id="stat-balance"><div class="label">Current balance</div><div class="value">...</div><div class="note"></div></div>
+    <div class="card stat" id="stat-income"><div class="label">Income this month</div><div class="value">...</div><div class="note"></div></div>
+    <div class="card stat" id="stat-expense"><div class="label">Expenses this month</div><div class="value">...</div><div class="note"></div></div>
+    <div class="card stat" id="stat-net"><div class="label">Net this month</div><div class="value">...</div><div class="note"></div></div>
+  </div>
+  <div id="summary-error" hidden></div>
+</section>
+<div class="grid cols-2">
+  <section class="card" aria-labelledby="recent-h">
+    <div class="card-head"><h2 id="recent-h">Recent transactions</h2><a href="{% url 'transactions' %}">View all</a></div>
+    <div id="recent" class="loading">Loading...</div>
+  </section>
+  <section class="card" aria-labelledby="budget-h">
+    <div class="card-head"><h2 id="budget-h">Budgets this month</h2><a href="{% url 'budgets' %}">Manage</a></div>
+    <div id="budgets" class="loading">Loading...</div>
+  </section>
+</div>
+<div class="grid cols-2">
+  <section class="card" aria-labelledby="bills-h">
+    <div class="card-head"><h2 id="bills-h">Coming up</h2><a href="{% url 'recurring' %}">Bills</a></div>
+    <div id="bills" class="loading">Loading...</div>
+  </section>
+  <section class="card" aria-labelledby="goals-h">
+    <div class="card-head"><h2 id="goals-h">Goals</h2><a href="{% url 'goals' %}">Manage</a></div>
+    <div id="goals" class="loading">Loading...</div>
+  </section>
+</div>
+<div class="grid cols-2">
+  <section class="card" aria-labelledby="mov-h">
+    <div class="card-head"><h2 id="mov-h">Where your money went</h2></div>
+    <p class="muted small">Compared with the same days last month.</p>
+    <div id="movers" class="loading">Loading...</div>
+  </section>
+  <section class="card" aria-labelledby="sub-h">
+    <div class="card-head"><h2 id="sub-h">Looks like subscriptions</h2></div>
+    <p class="muted small">Payments that repeat about monthly.</p>
+    <div id="subs" class="loading">Loading...</div>
+  </section>
+</div>
+<section class="card" aria-labelledby="acc-h">
+  <div class="card-head"><h2 id="acc-h">Accounts</h2><a href="{% url 'accounts' %}">Manage</a></div>
+  <div id="accounts" class="loading">Loading...</div>
+</section>
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'app/js/dashboard.js' %}"></script>{% endblock %}

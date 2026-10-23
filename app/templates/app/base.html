@@ -1,0 +1,108 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %} - Finance Manager</title>
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="{% static 'app/img/favicon.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'app/css/app.css' %}">
+  <script src="{% static 'app/js/sidebar-init.js' %}"></script>
+</head>
+<body class="app" data-page="{{ nav }}" data-currency="{{ money_config.code }}" data-sprite="{{ sprite_url }}">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="shell">
+    <header class="topbar">
+      <button class="icon-btn" type="button" id="nav-toggle" aria-controls="sidebar" aria-expanded="false" aria-label="Open menu">{% icon "menu" %}</button>
+      <a class="brand" href="{% url 'dashboard' %}"><span class="brand-mark" aria-hidden="true">F</span>Finance Manager</a>
+      <button class="icon-btn" type="button" data-open-search aria-label="Search">{% icon "search" %}</button>
+      <a class="icon-btn bell" href="{% url 'dashboard' %}#alerts" aria-label="Alerts" data-bell>{% icon "bell" %}<span class="badge" data-bell-count hidden></span></a>
+    </header>
+    <aside class="sidebar" id="sidebar" aria-label="Sidebar">
+      <div class="sidebar-top">
+        <a class="brand" href="{% url 'dashboard' %}" data-tip="Dashboard"><span class="brand-mark" aria-hidden="true">F</span><span class="brand-text">Finance Manager</span></a>
+        <button class="icon-btn collapse-btn" type="button" id="sidebar-collapse" aria-controls="sidebar" aria-expanded="true" aria-label="Collapse sidebar" hidden>{% icon "panel-left-close" %}</button>
+      </div>
+      <button class="search-trigger" type="button" data-open-search data-tip="Search">{% icon "search" %}<span class="nav-text">Search</span><kbd class="nav-text">/</kbd></button>
+      <nav class="nav" aria-label="Main">
+        {% include "app/_navlink.html" with url="dashboard" label="Overview" icon="layout-dashboard" %}
+        <div class="nav-group" data-group="money">
+          <button class="nav-group-toggle" type="button" aria-expanded="true" aria-controls="grp-money" hidden><span>Transactions</span>{% icon "chevron-down" %}</button>
+          <div class="nav-label">Transactions</div>
+          <div class="nav-group-body" id="grp-money">
+            {% include "app/_navlink.html" with url="transactions" label="Transactions" icon="list" %}
+            {% include "app/_navlink.html" with url="accounts" label="Accounts" icon="wallet" %}
+            {% include "app/_navlink.html" with url="import" label="Import CSV" icon="upload" %}
+            <a href="{% url 'export' %}" download data-tip="Export CSV">{% icon "download" %}<span class="nav-text">Export CSV</span></a>
+            {% include "app/_navlink.html" with url="trash" label="Trash" icon="trash-2" %}
+          </div>
+        </div>
+        <div class="nav-group" data-group="plan">
+          <button class="nav-group-toggle" type="button" aria-expanded="true" aria-controls="grp-plan" hidden><span>Plan</span>{% icon "chevron-down" %}</button>
+          <div class="nav-label">Plan</div>
+          <div class="nav-group-body" id="grp-plan">
+            {% include "app/_navlink.html" with url="budgets" label="Budgets" icon="target" %}
+            {% include "app/_navlink.html" with url="goals" label="Goals" icon="piggy-bank" %}
+            {% include "app/_navlink.html" with url="recurring" label="Bills" icon="repeat" %}
+            {% include "app/_navlink.html" with url="people" label="Debts and sharing" icon="users" %}
+          </div>
+        </div>
+        <div class="nav-group" data-group="reports">
+          <button class="nav-group-toggle" type="button" aria-expanded="true" aria-controls="grp-reports" hidden><span>Reports</span>{% icon "chevron-down" %}</button>
+          <div class="nav-label">Reports</div>
+          <div class="nav-group-body" id="grp-reports">
+            {% include "app/_navlink.html" with url="reports" label="Reports" icon="file-text" %}
+            {% include "app/_navlink.html" with url="analytics" label="Analytics" icon="chart-column" %}
+            {% include "app/_navlink.html" with url="digest" label="Weekly digest" icon="newspaper" %}
+          </div>
+        </div>
+        <div class="nav-group" data-group="settings">
+          <button class="nav-group-toggle" type="button" aria-expanded="true" aria-controls="grp-settings" hidden><span>Settings</span>{% icon "chevron-down" %}</button>
+          <div class="nav-label">Settings</div>
+          <div class="nav-group-body" id="grp-settings">
+            {% include "app/_navlink.html" with url="settings" label="Settings" icon="sliders-horizontal" %}
+            {% include "app/_navlink.html" with url="categories" label="Categories and rules" icon="tags" %}
+            {% include "app/_navlink.html" with url="backup" label="Backup" icon="database" %}
+          </div>
+        </div>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="who"><strong>{{ user.first_name|default:user.username }}</strong><span class="muted">{{ user.username }}</span></div>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+          <button class="linkish" type="submit" data-tip="Sign out">{% icon "log-out" %}<span class="nav-text">Sign out</span></button>
+        </form>
+      </div>
+    </aside>
+    <div class="scrim" id="scrim"></div>
+    <main id="main" tabindex="-1">
+      {% if messages %}
+      <ul class="flash" data-flash>{% for m in messages %}<li class="notice {{ m.tags }}" data-level="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>
+      {% endif %}
+      <div class="page-head">
+        <div>
+          <h1>{% block heading %}{% endblock %}</h1>
+          {% block subheading %}{% endblock %}
+        </div>
+        <div class="actions">{% block actions %}{% endblock %}</div>
+      </div>
+      <noscript><p class="notice warn">This page needs JavaScript to load its data.</p></noscript>
+      {% block content %}{% endblock %}
+    </main>
+    <nav class="bottom-nav" aria-label="Quick navigation">
+      <a href="{% url 'dashboard' %}"{% if nav == 'dashboard' %} aria-current="page"{% endif %}>{% icon "layout-dashboard" %}<span>Home</span></a>
+      <a href="{% url 'transactions' %}"{% if nav == 'transactions' %} aria-current="page"{% endif %}>{% icon "list" %}<span>Activity</span></a>
+      <button class="fab" type="button" data-new-transaction aria-label="Add transaction">{% icon "plus" %}</button>
+      <a href="{% url 'budgets' %}"{% if nav == 'budgets' %} aria-current="page"{% endif %}>{% icon "target" %}<span>Budgets</span></a>
+      <a href="{% url 'analytics' %}"{% if nav == 'analytics' %} aria-current="page"{% endif %}>{% icon "chart-column" %}<span>Charts</span></a>
+    </nav>
+  </div>
+
+  {% include "app/_dialogs.html" %}
+  <div id="sys-status" class="sys-status" role="status" aria-live="polite"></div>
+  <div id="toasts" role="status" aria-live="polite" aria-atomic="false"></div>
+  {{ money_config|json_script:"money-config" }}
+  <script type="module" src="{% static 'app/js/layout.js' %}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,20 @@
+<div class="field{% if wide %} wide{% endif %}">
+  {% if field.field.widget.input_type == "checkbox" %}
+  <label class="check">{{ field }} {{ field.label }}</label>
+  {% elif field.field.widget.input_type == "password" %}
+  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+  <div class="pw">
+    {{ field }}
+    <button class="pw-toggle" type="button" data-pw-toggle aria-pressed="false" aria-label="Show password" hidden>{% icon "eye" %}</button>
+  </div>
+  <p class="caps-warn" data-caps hidden>Caps Lock is on.</p>
+  {% if meter %}<p class="field-hint" data-pw-message aria-live="polite" hidden></p><div class="meter" data-meter hidden><span class="meter-track"><span class="meter-bar"></span></span><span class="meter-label" aria-live="polite"></span></div>{% endif %}
+  {% if match %}<p class="match-note" data-match-note aria-live="polite" hidden></p>{% endif %}
+  {% else %}
+  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {{ field }}
+  {% if hint %}<p class="field-hint" data-hint aria-live="polite" hidden></p>{% endif %}
+  {% endif %}
+  {% if field.help_text %}<div class="help">{{ field.help_text|safe }}</div>{% endif %}
+  {% for error in field.errors|slice:":1" %}<p class="field-error">{{ error }}</p>{% endfor %}
+</div>

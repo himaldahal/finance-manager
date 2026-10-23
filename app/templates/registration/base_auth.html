@@ -1,0 +1,25 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %} - Finance Manager</title>
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="{% static 'app/img/favicon.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'app/css/app.css' %}">
+  <meta name="sprite" content="{% static 'app/icons/sprite.svg' %}">
+</head>
+<body>
+  <main class="auth" id="main">
+    <div class="auth-card">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">F</span>Finance Manager</div>
+      <div class="card">
+        {% if messages %}<ul class="flash">{% for m in messages %}<li class="notice {{ m.tags }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
+        {% block content %}{% endblock %}
+      </div>
+      <p class="auth-foot">{% block footer %}{% endblock %}</p>
+    </div>
+  </main>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

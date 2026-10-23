@@ -1,0 +1,18 @@
+{% extends "registration/base_auth.html" %}
+{% load static %}
+{% block title %}Create account{% endblock %}
+{% block content %}
+<h1>Create your account</h1>
+<form method="post" novalidate data-validate="register" data-availability-url="{% url 'username_available' %}">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="form-error" role="alert">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>{% endif %}
+  {% include "app/_field.html" with field=form.full_name hint=True %}
+  {% include "app/_field.html" with field=form.username hint=True %}
+  {% include "app/_field.html" with field=form.email hint=True %}
+  {% include "app/_field.html" with field=form.password1 meter=True %}
+  {% include "app/_field.html" with field=form.password2 match=True %}
+  <button class="btn btn-primary" type="submit">Create account</button>
+</form>
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'app/js/password.js' %}"></script><script type="module" src="{% static 'app/js/register.js' %}"></script>{% endblock %}
+{% block footer %}Already registered? <a href="{% url 'login' %}">Sign in</a>{% endblock %}

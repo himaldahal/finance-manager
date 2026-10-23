@@ -1,0 +1,85 @@
+{% load money %}
+<div id="results-inner" data-count="{{ paginator.count }}" data-active="{{ flt.active|yesno:'1,0' }}">
+{% if paginator.count == 0 %}
+  <div class="card empty">
+    {% if flt.active %}
+      <h3>No matching transactions</h3>
+      <p>Try different filters or a wider date range.</p>
+      <a class="btn" href="{% url 'transactions' %}" data-clear-filters>Clear filters</a>
+    {% else %}
+      <h3>No transactions yet</h3>
+      <p>Add your first income or expense, or import a CSV file.</p>
+      <button class="btn btn-primary" type="button" data-new-transaction>Add transaction</button>
+      <a class="btn" href="{% url 'import' %}">Import CSV</a>
+    {% endif %}
+  </div>
+{% else %}
+  <div class="bulk" data-bulk hidden>
+    <strong><span data-bulk-count>0</span> selected</strong>
+    <label class="sr-only" for="bulk-category">Move selected to category</label>
+    <select id="bulk-category">
+      <option value="">Change category...</option>
+      {% for c in shell_categories %}<option value="{{ c.id }}">{{ c.full_name }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-sm" type="button" data-bulk-apply>Apply</button>
+    <button class="btn btn-sm" type="button" data-bulk-reconcile="1">Mark reconciled</button>
+    <button class="btn btn-quiet btn-sm" type="button" data-bulk-reconcile="0">Unmark</button>
+    <button class="btn btn-sm btn-danger" type="button" data-bulk-delete>Delete selected</button>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+    <table class="table stack">
+      <caption class="sr-only">Transactions, page {{ page.number }} of {{ paginator.num_pages }}</caption>
+      <thead>
+        <tr>
+          <th class="check-col"><input type="checkbox" data-select-all aria-label="Select all on this page"></th>
+          {% for h in headers %}{% include "app/_sort_th.html" with h=h %}{% endfor %}
+          <th>Account</th>
+          {% include "app/_sort_th.html" with h=amount_header %}
+          <th><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for t in page %}
+        <tr data-id="{{ t.pk }}">
+          <td class="check-col"><input type="checkbox" class="row-check" value="{{ t.pk }}" aria-label="Select {{ t.name }}"></td>
+          <td data-label="Date">{{ t.date|date:"Y-m-d" }}</td>
+          <td class="name-cell" data-label="Description">{{ t.name }}
+            {% if t.payee or t.tags.all %}<span class="row-meta">{% if t.payee %}<span class="muted">{{ t.payee }}</span>{% endif %}{% for tag in t.tags.all %}<span class="tag-chip">{{ tag.name }}</span>{% endfor %}</span>{% endif %}
+            {% if t.split_group %}<span class="tag-chip split-chip">Split</span>{% endif %}{% if t.reconciled %}<span class="tag-chip rec-chip">Reconciled</span>{% endif %}
+            {% if t.note %}<span class="row-note">{{ t.note|truncatechars:90 }}</span>{% endif %}</td>
+          <td data-label="Category"><button class="inline-cat" type="button" data-inline-category="{{ t.pk }}" data-current="{{ t.category_id }}" data-kind="{{ t.kind }}" title="Change category">{% icon t.category.icon "cat-icon tone-text-"|add:t.category.color %}{{ t.category.name }}</button></td>
+          <td data-label="Account">{{ t.account.name|default:"" }}</td>
+          <td class="num {% if t.kind == 'income' %}pos{% else %}neg{% endif %}" data-label="Amount">{% if t.kind == 'income' %}+{% else %}-{% endif %}{% money t.amount %}</td>
+          <td class="row-actions">
+            <button class="icon-btn" type="button" data-duplicate="{{ t.pk }}" aria-label="Duplicate {{ t.name }}" title="Duplicate">{% icon "copy" %}</button>
+            <button class="icon-btn" type="button" data-edit="{{ t.pk }}" aria-label="Edit {{ t.name }}">{% icon "pencil" %}</button>
+            <button class="icon-btn danger" type="button" data-delete="{{ t.pk }}" data-name="{{ t.name }}" aria-label="Delete {{ t.name }}">{% icon "trash-2" %}</button>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td class="check-col"></td>
+          <td colspan="4">All {{ paginator.count }} matching: income <span class="pos">{% money income %}</span>, expenses <span class="neg">{% money expense %}</span></td>
+          <td class="num {% if net < 0 %}neg{% else %}pos{% endif %}" data-label="Net">{% money net %}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+  </div>
+  {% if paginator.num_pages > 1 %}
+  <nav class="pagination" aria-label="Pages">
+    {% if prev_href %}<a href="{{ prev_href }}" rel="prev" data-page-link>Previous</a>{% endif %}
+    {% for p in pages %}
+      {% if p.gap %}<span class="gap">...</span>
+      {% elif p.current %}<span class="current" aria-current="page">{{ p.number }}</span>
+      {% else %}<a href="{{ p.href }}" data-page-link>{{ p.number }}</a>{% endif %}
+    {% endfor %}
+    {% if next_href %}<a href="{{ next_href }}" rel="next" data-page-link>Next</a>{% endif %}
+  </nav>
+  {% endif %}
+{% endif %}
+</div>

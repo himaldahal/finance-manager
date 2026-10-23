@@ -1,0 +1,1 @@
+{% if value is None %}<span class="muted">-</span>{% else %}<span class="{% if value == 0 %}muted{% elif value > 0 %}{% if good_up %}pos{% else %}neg{% endif %}{% else %}{% if good_up %}neg{% else %}pos{% endif %}{% endif %}">{% if value > 0 %}+{% endif %}{{ value }}%</span>{% endif %}

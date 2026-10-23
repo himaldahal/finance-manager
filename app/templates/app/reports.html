@@ -1,0 +1,98 @@
+{% extends "app/base.html" %}
+{% load static money %}
+{% block title %}Reports{% endblock %}
+{% block heading %}Reports{% endblock %}
+{% block subheading %}<p class="sub">{{ start|date:"j M Y" }} to {{ end|date:"j M Y" }}. Compared with {{ data.previous_start|date:"j M Y" }} to {{ data.previous_end|date:"j M Y" }}.</p>{% endblock %}
+{% block actions %}<button class="btn" type="button" data-print>{% icon "printer" %}Print or save as PDF</button>{% endblock %}
+{% block content %}
+{% with s=data.statement %}
+<form class="card range-bar no-print" id="report-form" method="get" action="{% url 'reports' %}">
+  <div class="field"><label for="rp-preset">Period</label>
+    <select id="rp-preset" name="preset">{% for value, label in presets %}<option value="{{ value }}"{% if value == preset %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+  <div class="field"><label for="rp-start">From</label><input id="rp-start" name="start" type="date" value="{{ start|date:'Y-m-d' }}"></div>
+  <div class="field"><label for="rp-end">To</label><input id="rp-end" name="end" type="date" value="{{ end|date:'Y-m-d' }}"></div>
+  <button class="btn btn-primary" type="submit">Show report</button>
+</form>
+
+<section class="card report" aria-labelledby="r-is">
+  <div class="card-head"><h2 id="r-is">Income statement</h2><a class="btn btn-sm no-print" href="{% url 'report_export' %}?report=income_statement&{{ query }}">{% icon "download" %}CSV</a></div>
+  <div class="table-wrap">
+  <table class="table report-table">
+    <thead><tr><th>Line</th><th class="num">This period</th><th class="num">Previous</th><th class="num">Change</th></tr></thead>
+    <tbody>
+      <tr class="group"><th colspan="4" scope="colgroup">Income</th></tr>
+      {% for r in s.income %}<tr><td>{{ r.name }}</td><td class="num">{% money r.amount %}</td><td class="num">{% money r.previous %}</td><td class="num">{% include "app/_change.html" with value=r.change good_up=True %}</td></tr>{% empty %}<tr><td colspan="4" class="muted">No income in this period.</td></tr>{% endfor %}
+      <tr class="total"><td>Total income</td><td class="num pos">{% money s.income_total %}</td><td class="num">{% money s.previous.income %}</td><td class="num">{% include "app/_change.html" with value=s.changes.income good_up=True %}</td></tr>
+      <tr class="group"><th colspan="4" scope="colgroup">Expenses</th></tr>
+      {% for r in s.expenses %}<tr><td>{{ r.name }}</td><td class="num">{% money r.amount %}</td><td class="num">{% money r.previous %}</td><td class="num">{% include "app/_change.html" with value=r.change good_up=False %}</td></tr>{% empty %}<tr><td colspan="4" class="muted">No expenses in this period.</td></tr>{% endfor %}
+      <tr class="total"><td>Total expenses</td><td class="num neg">{% money s.expense_total %}</td><td class="num">{% money s.previous.expense %}</td><td class="num">{% include "app/_change.html" with value=s.changes.expense good_up=False %}</td></tr>
+    </tbody>
+    <tfoot><tr><td>Net income{% if s.savings_rate is not None %} <span class="muted small">(savings rate {{ s.savings_rate }}%)</span>{% endif %}</td><td class="num {% if s.net < 0 %}neg{% else %}pos{% endif %}">{% money s.net %}</td><td class="num">{% money s.previous.net %}</td><td class="num">{% include "app/_change.html" with value=s.changes.net good_up=True %}</td></tr></tfoot>
+  </table>
+  </div>
+</section>
+
+<section class="card report" aria-labelledby="r-cat">
+  <div class="card-head"><h2 id="r-cat">Category breakdown</h2><a class="btn btn-sm no-print" href="{% url 'report_export' %}?report=categories&{{ query }}">{% icon "download" %}CSV</a></div>
+  <div class="table-wrap">
+  <table class="table report-table">
+    <thead><tr><th>Category</th><th class="num">Spent</th><th class="num">Share</th><th class="num">Previous</th><th class="num">Change</th></tr></thead>
+    <tbody>{% for r in data.categories %}<tr><td>{{ r.name }}</td><td class="num">{% money r.amount %}</td><td class="num">{{ r.share }}%</td><td class="num">{% money r.previous %}</td><td class="num">{% include "app/_change.html" with value=r.change good_up=False %}</td></tr>{% empty %}<tr><td colspan="5" class="muted">No expenses in this period.</td></tr>{% endfor %}</tbody>
+  </table>
+  </div>
+</section>
+
+<section class="card report" aria-labelledby="r-trend">
+  <div class="card-head"><h2 id="r-trend">{% if data.yearly %}Yearly{% else %}Monthly{% endif %} trend and savings rate</h2><a class="btn btn-sm no-print" href="{% url 'report_export' %}?report=trend&{{ query }}">{% icon "download" %}CSV</a></div>
+  <div class="table-wrap">
+  <table class="table report-table">
+    <thead><tr><th>Period</th><th class="num">Income</th><th class="num">Expenses</th><th class="num">Net</th><th class="num">Savings rate</th></tr></thead>
+    <tbody>{% for r in data.trend %}<tr><td>{{ r.period }}</td><td class="num">{% money r.income %}</td><td class="num">{% money r.expense %}</td><td class="num {% if r.net < 0 %}neg{% else %}pos{% endif %}">{% money r.net %}</td><td class="num">{% if r.savings_rate is not None %}{{ r.savings_rate }}%{% else %}-{% endif %}</td></tr>{% empty %}<tr><td colspan="5" class="muted">No transactions in this period.</td></tr>{% endfor %}</tbody>
+  </table>
+  </div>
+</section>
+
+<section class="card report" aria-labelledby="r-nw">
+  <div class="card-head"><h2 id="r-nw">Net worth at month end</h2><a class="btn btn-sm no-print" href="{% url 'report_export' %}?report=net_worth&{{ query }}">{% icon "download" %}CSV</a></div>
+  <div class="table-wrap">
+  <table class="table report-table">
+    <thead><tr><th>Month</th><th class="num">Balance across all accounts</th></tr></thead>
+    <tbody>{% for r in data.net_worth %}<tr><td>{{ r.period }}</td><td class="num {% if r.balance < 0 %}neg{% endif %}">{% money r.balance %}</td></tr>{% endfor %}</tbody>
+  </table>
+  </div>
+</section>
+
+<div class="grid cols-2">
+  <section class="card report" aria-labelledby="r-pay">
+    <div class="card-head"><h2 id="r-pay">Top payees</h2><a class="btn btn-sm no-print" href="{% url 'report_export' %}?report=payees&{{ query }}">{% icon "download" %}CSV</a></div>
+    <div class="table-wrap">
+    <table class="table report-table">
+      <thead><tr><th>Payee</th><th class="num">Transactions</th><th class="num">Total</th></tr></thead>
+      <tbody>{% for r in data.payees %}<tr><td>{{ r.name }}</td><td class="num">{{ r.count }}</td><td class="num">{% money r.amount %}</td></tr>{% empty %}<tr><td colspan="3" class="muted">No payees recorded in this period.</td></tr>{% endfor %}</tbody>
+    </table>
+    </div>
+  </section>
+  <section class="card report" aria-labelledby="r-tag">
+    <div class="card-head"><h2 id="r-tag">Tags</h2><a class="btn btn-sm no-print" href="{% url 'report_export' %}?report=tags&{{ query }}">{% icon "download" %}CSV</a></div>
+    <div class="table-wrap">
+    <table class="table report-table">
+      <thead><tr><th>Tag</th><th class="num">Income</th><th class="num">Expenses</th><th class="num">Count</th></tr></thead>
+      <tbody>{% for r in data.tags %}<tr><td>{{ r.name }}</td><td class="num">{% money r.income %}</td><td class="num">{% money r.expense %}</td><td class="num">{{ r.count }}</td></tr>{% empty %}<tr><td colspan="4" class="muted">No tagged transactions in this period.</td></tr>{% endfor %}</tbody>
+    </table>
+    </div>
+  </section>
+</div>
+
+<section class="card report" aria-labelledby="r-cf">
+  <div class="card-head"><h2 id="r-cf">Cash flow by account</h2><a class="btn btn-sm no-print" href="{% url 'report_export' %}?report=cash_flow&{{ query }}">{% icon "download" %}CSV</a></div>
+  <div class="table-wrap">
+  <table class="table report-table">
+    <thead><tr><th>Account</th><th class="num">Opening</th><th class="num">Income</th><th class="num">Expenses</th><th class="num">Transfers in</th><th class="num">Transfers out</th><th class="num">Closing</th></tr></thead>
+    <tbody>{% for r in data.cash_flow %}<tr><td>{{ r.name }}</td><td class="num">{% money r.opening %}</td><td class="num">{% money r.inflow %}</td><td class="num">{% money r.outflow %}</td><td class="num">{% money r.transfers_in %}</td><td class="num">{% money r.transfers_out %}</td><td class="num">{% money r.closing %}</td></tr>{% endfor %}</tbody>
+  </table>
+  </div>
+</section>
+<p class="muted small print-only">Generated {{ generated|date:"j M Y, H:i" }}.</p>
+{% endwith %}
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'app/js/reports.js' %}"></script>{% endblock %}

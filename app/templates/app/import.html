@@ -1,0 +1,65 @@
+{% extends "app/base.html" %}
+{% load money %}
+{% block title %}Import{% endblock %}
+{% block heading %}Import CSV{% endblock %}
+{% block content %}
+{% if rows %}
+<div class="card">
+  <div class="card-head"><h2>Preview</h2></div>
+  <div class="import-summary">
+    <span class="tag income">{{ n_valid }} ready to import</span>
+    <span class="tag warn">{{ n_duplicate }} possible duplicate{{ n_duplicate|pluralize }}</span>
+    <span class="tag expense">{{ n_error }} with errors</span>
+  </div>
+  {% if n_rules %}<p class="notice">{{ n_rules }} row(s) were categorised by your rules.</p>{% endif %}
+  {% if new_categories %}<p class="notice">New categories will be created: {{ new_categories|join:", " }}.</p>{% endif %}
+  <div class="table-wrap">
+  <table class="table">
+    <caption class="sr-only">Rows found in the file</caption>
+    <thead><tr><th>Line</th><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th class="num">Amount</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr class="{% if r.errors %}is-bad{% elif r.duplicate %}is-dup{% endif %}">
+        <td>{{ r.line }}</td><td>{{ r.date|date:"Y-m-d" }}</td><td>{{ r.name }}</td><td>{{ r.category }}</td><td>{{ r.kind }}</td>
+        <td class="num">{% if r.amount %}{% money r.amount %}{% endif %}</td>
+        <td>{% if r.errors %}{% for e in r.errors %}<div class="row-error">{{ e }}</div>{% endfor %}{% elif r.duplicate %}<span class="tag warn">Duplicate</span>{% else %}<span class="tag income">OK</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <form method="post" action="{% url 'import_confirm' %}" class="actions">
+    {% csrf_token %}
+    <input type="hidden" name="token" value="{{ token }}">
+    <label class="check"><input type="checkbox" name="skip_duplicates" checked> Skip possible duplicates</label>
+    <button class="btn btn-primary" type="submit"{% if n_valid == 0 and n_duplicate == 0 %} disabled{% endif %}>Import valid rows</button>
+  </form>
+  <form method="post" action="{% url 'import_cancel' %}">{% csrf_token %}<button class="btn btn-quiet btn-sm" type="submit">Cancel and start over</button></form>
+</div>
+{% else %}
+<div class="grid cols-2">
+  <form class="card" method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    <div class="card-head"><h2>Upload a file</h2></div>
+    {% if form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    {% include "app/_field.html" with field=form.file %}
+    <p class="help">You will see a preview before anything is saved. Limits: 1000 rows, 512 KB.</p>
+    <p><button class="btn btn-primary" type="submit">Preview import</button></p>
+  </form>
+  <div class="card">
+    <div class="card-head"><h2>File format</h2></div>
+    <p>One header row with these columns:</p>
+    <p><code>date,type,name,category,amount,payee,account,tags,note</code></p>
+    <ul class="small muted">
+      <li>date: <code>YYYY-MM-DD</code></li>
+      <li>type: <code>income</code> or <code>expense</code></li>
+      <li>amount: positive, up to two decimals</li>
+      <li>category may be empty when an auto-categorise rule matches the name or payee</li>
+      <li>unknown categories are created for you; account must already exist (empty uses your first account)</li>
+      <li>tags are separated by semicolons</li>
+      <li>the file from Export CSV imports as is</li>
+    </ul>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

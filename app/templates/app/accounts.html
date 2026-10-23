@@ -1,0 +1,52 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}Accounts{% endblock %}
+{% block heading %}Accounts{% endblock %}
+{% block subheading %}<p class="sub">Where your money is. Transfers between accounts are not income or expenses.</p>{% endblock %}
+{% block actions %}
+<button class="btn" type="button" id="new-transfer">{% icon "arrow-left-right" %}Transfer</button>
+<button class="btn btn-primary" type="button" id="new-account">{% icon "plus" %}New account</button>
+{% endblock %}
+{% block content %}
+<div id="account-list" class="account-grid loading">Loading...</div>
+<section class="card" aria-labelledby="tr-h">
+  <div class="card-head"><h2 id="tr-h">Recent transfers</h2></div>
+  <div id="transfer-list" class="loading">Loading...</div>
+</section>
+
+<dialog id="account-dialog" aria-labelledby="account-title">
+  <form id="account-form" method="dialog" novalidate>
+    <div class="dialog-head"><h2 id="account-title">New account</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="dialog-body">
+      <div class="form-error" data-form-error role="alert" hidden></div>
+      <div class="field"><label for="account-name">Name</label><input id="account-name" name="name" type="text" maxlength="60" required autocomplete="off"><p class="field-error" data-error-for="name"></p></div>
+      <div class="form-grid">
+        <div class="field"><label for="account-type">Type</label><select id="account-type" name="type">{% for value, label in account_types %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select><p class="field-error" data-error-for="type"></p></div>
+        <div class="field"><label for="account-opening">Opening balance</label><input id="account-opening" name="opening_balance" type="text" data-money data-signed inputmode="decimal" value="0"><p class="field-error" data-error-for="opening_balance"></p></div>
+      </div>
+      <div class="field"><label class="check"><input type="checkbox" name="archived"> Archived (hidden from new transactions)</label></div>
+    </div>
+    <div class="dialog-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit" data-submit>Save</button></div>
+  </form>
+</dialog>
+
+<dialog id="transfer-dialog" aria-labelledby="transfer-title">
+  <form id="transfer-form" method="dialog" novalidate>
+    <div class="dialog-head"><h2 id="transfer-title">Transfer between accounts</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="dialog-body">
+      <div class="form-error" data-form-error role="alert" hidden></div>
+      <div class="form-grid">
+        <div class="field"><label for="tr-from">From</label><select id="tr-from" name="from_account"></select><p class="field-error" data-error-for="from_account"></p></div>
+        <div class="field"><label for="tr-to">To</label><select id="tr-to" name="to_account"></select><p class="field-error" data-error-for="to_account"></p></div>
+        <div class="field"><label for="tr-amount">Amount</label><input id="tr-amount" name="amount" type="text" data-money inputmode="decimal" required><p class="field-error" data-error-for="amount"></p></div>
+        <div class="field"><label for="tr-date">Date</label><input id="tr-date" name="date" type="date" required value="{{ today|date:'Y-m-d' }}"><p class="field-error" data-error-for="date"></p></div>
+        <div class="field wide"><label for="tr-note">Note (optional)</label><input id="tr-note" name="note" type="text" maxlength="200"><p class="field-error" data-error-for="note"></p></div>
+      </div>
+    </div>
+    <div class="dialog-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit" data-submit>Transfer</button></div>
+  </form>
+</dialog>
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'app/js/accounts.js' %}"></script>{% endblock %}

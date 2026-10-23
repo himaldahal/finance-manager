@@ -1,0 +1,25 @@
+{% extends "app/base.html" %}
+{% load money %}
+{% block title %}Weekly digest{% endblock %}
+{% block heading %}Weekly digest{% endblock %}
+{% block subheading %}<p class="sub">{{ d.start|date:"j M" }} to {{ d.end|date:"j M Y" }}, compared with the 7 days before.</p>{% endblock %}
+{% block actions %}<button class="btn" type="button" data-print>{% icon "printer" %}Print</button>{% endblock %}
+{% block content %}
+<section class="grid cols-4" aria-label="This week">
+  <div class="card stat"><div class="label">Spent</div><div class="value neg">{% money d.expense %}</div>
+    <div class="note">{% if d.expense_change is None %}Nothing spent the week before{% elif d.expense_change == 0 %}Same as the week before{% elif d.expense_change < 0 %}{{ d.expense_change|cut:"-" }}% less than the week before{% else %}{{ d.expense_change }}% more than the week before{% endif %}</div></div>
+  <div class="card stat"><div class="label">Income</div><div class="value pos">{% money d.income %}</div><div class="note">Week before: {% money d.prev_income %}</div></div>
+  <div class="card stat"><div class="label">Net</div><div class="value {% if d.net < 0 %}neg{% else %}pos{% endif %}">{% money d.net %}</div><div class="note">{{ d.count }} transaction{{ d.count|pluralize }}</div></div>
+  <div class="card stat"><div class="label">Month budgets</div><div class="value">{{ d.budget.over }} over</div><div class="note">{{ d.budget.warn }} near the limit</div></div>
+</section>
+<div class="grid cols-2">
+  <section class="card"><div class="card-head"><h2>Where it went</h2></div>
+    {% if d.categories %}<ul class="mini-list">{% for c in d.categories %}<li><span><span class="tone tone-{{ c.color }}"></span>{{ c.name }}</span><span class="amt">{% money c.total %}</span></li>{% endfor %}</ul>
+    {% else %}<p class="muted">No spending this week.</p>{% endif %}
+    {% if d.biggest %}<p class="small muted">Biggest single expense: {{ d.biggest.name }} ({% money d.biggest.amount %}) on {{ d.biggest.date|date:"j M" }}.</p>{% endif %}</section>
+  <section class="card"><div class="card-head"><h2>Coming up</h2><a href="{% url 'recurring' %}">Bills</a></div>
+    {% if d.bills %}<ul class="mini-list">{% for b in d.bills %}<li><span>{{ b.name }}<span class="sub">{{ b.due|date:"j M" }}{% if b.days < 0 %} (overdue){% elif b.days == 0 %} (today){% endif %}</span></span><span class="amt">{% money b.amount %}</span></li>{% endfor %}</ul>
+    {% else %}<p class="muted">Nothing due in the next two weeks.</p>{% endif %}</section>
+</div>
+{% endblock %}
+{% block scripts %}{% load static %}<script type="module" src="{% static 'app/js/reports.js' %}"></script>{% endblock %}

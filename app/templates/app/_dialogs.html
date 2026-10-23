@@ -1,0 +1,94 @@
+<dialog id="tx-dialog" aria-labelledby="tx-title">
+  <form id="tx-form" method="dialog" novalidate>
+    <div class="dialog-head">
+      <h2 id="tx-title">Add transaction</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close">{% icon "x" %}</button>
+    </div>
+    <div class="dialog-body">
+      <div class="form-error" data-form-error role="alert" hidden></div>
+      <div class="field">
+        <div class="segmented" role="radiogroup" aria-label="Type">
+          <label><input type="radio" name="kind" value="expense" checked><span>Expense</span></label>
+          <label><input type="radio" name="kind" value="income"><span>Income</span></label>
+        </div>
+        <p class="field-error" data-error-for="kind"></p>
+      </div>
+      <div class="form-grid">
+        <div class="field wide"><label for="tx-name">Description</label><input id="tx-name" name="name" type="text" maxlength="120" required autocomplete="off"><p class="field-error" data-error-for="name"></p></div>
+        <div class="field"><label for="tx-amount">Amount <span class="muted" data-currency-code></span></label><input id="tx-amount" name="amount" type="text" data-money inputmode="decimal" autocomplete="off" required><p class="field-error" data-error-for="amount"></p></div>
+        <div class="field"><label for="tx-date">Date</label><input id="tx-date" name="date" type="date" required>
+          <div class="chips"><button class="chip" type="button" data-date-preset="0">Today</button><button class="chip" type="button" data-date-preset="-1">Yesterday</button></div>
+          <p class="field-error" data-error-for="date"></p></div>
+        <div class="field"><label for="tx-category">Category</label>
+          <select id="tx-category" name="category">
+            <option value="">Pick automatically</option>
+            {% for c in shell_categories %}<option value="{{ c.id }}" data-kind="{{ c.kind }}">{{ c.full_name }}</option>{% endfor %}
+          </select>
+          <p class="field-error" data-error-for="category"></p>
+          <p class="help" data-rule-hint hidden></p>
+        </div>
+      </div>
+      <details class="more" id="tx-more">
+        <summary>More options</summary>
+        <div class="form-grid">
+          <div class="field"><label for="tx-account">Account</label>
+            <select id="tx-account" name="account">{% for a in shell_accounts %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}</select>
+            <p class="field-error" data-error-for="account"></p></div>
+          <div class="field"><label for="tx-payee">Payee</label><input id="tx-payee" name="payee" type="text" maxlength="80" list="payee-options" autocomplete="off"><datalist id="payee-options"></datalist><p class="field-error" data-error-for="payee"></p></div>
+          <div class="field wide"><label for="tx-tags">Tags</label><input id="tx-tags" name="tags" type="text" list="tag-options" autocomplete="off" placeholder="work, weekend"><datalist id="tag-options"></datalist><p class="field-error" data-error-for="tags"></p></div>
+          <div class="field wide"><label for="tx-note">Note</label><textarea id="tx-note" name="note" rows="2" maxlength="1000"></textarea><p class="field-error" data-error-for="note"></p></div>
+        </div>
+      </details>
+      <details class="more" id="tx-split-box">
+        <summary>Split across categories</summary>
+        <p class="help">One purchase, several categories. The parts must add up to the amount above.</p>
+        <div id="split-rows"></div>
+        <p class="actions"><button class="btn btn-sm" type="button" id="split-add">{% icon "plus" %}Add part</button><span class="muted small" id="split-left"></span></p>
+        <p class="field-error" data-error-for="splits"></p>
+      </details>
+      <div id="tx-history" class="tx-history" hidden></div>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn btn-quiet" type="button" id="tx-history-btn" hidden>{% icon "history" %}History</button>
+      <button class="btn" type="button" data-close>Cancel</button>
+      <button class="btn btn-primary" type="submit" data-submit>Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="search-dialog" class="search-dialog" aria-label="Search">
+  <div class="search-box">
+    {% icon "search" %}
+    <input id="search-input" type="text" role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" aria-label="Search transactions, payees, categories, tags, accounts and goals" placeholder="Search transactions, payees, categories, tags, goals" autocomplete="off" spellcheck="false">
+    <button class="icon-btn" type="button" data-close aria-label="Close search">{% icon "x" %}</button>
+  </div>
+  <div id="search-results" role="listbox" aria-label="Search results" class="search-results"></div>
+  <p class="search-hint muted small" id="search-hint">Type at least 2 characters. Use the arrow keys and Enter.</p>
+</dialog>
+
+<dialog id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+  <form method="dialog">
+    <div class="dialog-head"><h2 id="confirm-title">Are you sure?</h2></div>
+    <div class="dialog-body"><p id="confirm-message"></p></div>
+    <div class="dialog-foot">
+      <button class="btn" type="submit" value="cancel" data-cancel>Cancel</button>
+      <button class="btn btn-danger" type="submit" value="ok" data-ok>Delete</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="help-dialog" aria-labelledby="help-title">
+  <form method="dialog">
+    <div class="dialog-head"><h2 id="help-title">Keyboard shortcuts</h2>
+      <button class="icon-btn" type="submit" aria-label="Close">{% icon "x" %}</button></div>
+    <div class="dialog-body">
+      <dl class="keys">
+        <dt><kbd>n</kbd></dt><dd>Add a transaction</dd>
+        <dt><kbd>/</kbd></dt><dd>Search everything</dd>
+        <dt><kbd>[</kbd></dt><dd>Collapse or expand the sidebar</dd>
+        <dt><kbd>?</kbd></dt><dd>Show this help</dd>
+        <dt><kbd>Esc</kbd></dt><dd>Close a dialog or menu</dd>
+      </dl>
+    </div>
+  </form>
+</dialog>

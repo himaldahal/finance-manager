@@ -1,0 +1,44 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}Goals{% endblock %}
+{% block heading %}Savings goals{% endblock %}
+{% block subheading %}<p class="sub">Track what you are saving towards and what to set aside each month.</p>{% endblock %}
+{% block actions %}<button class="btn btn-primary" type="button" id="new-goal">{% icon "plus" %}New goal</button>{% endblock %}
+{% block content %}
+<div id="goal-list" class="goal-grid loading">Loading...</div>
+
+<dialog id="goal-dialog" aria-labelledby="goal-title">
+  <form id="goal-form" method="dialog" novalidate>
+    <div class="dialog-head"><h2 id="goal-title">New goal</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="dialog-body">
+      <div class="form-error" data-form-error role="alert" hidden></div>
+      <div class="field"><label for="goal-name">Name</label><input id="goal-name" name="name" type="text" maxlength="80" required autocomplete="off"><p class="field-error" data-error-for="name"></p></div>
+      <div class="form-grid">
+        <div class="field"><label for="goal-target">Target amount</label><input id="goal-target" name="target_amount" type="text" data-money inputmode="decimal" required><p class="field-error" data-error-for="target_amount"></p></div>
+        <div class="field"><label for="goal-date">Target date (optional)</label><input id="goal-date" name="target_date" type="date"><p class="field-error" data-error-for="target_date"></p></div>
+        <div class="field"><label for="goal-account">Account (optional)</label><select id="goal-account" name="account"><option value="">None</option>{% for a in shell_accounts %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}</select><p class="field-error" data-error-for="account"></p></div>
+        <div class="field"><label for="goal-category">Category (optional)</label><select id="goal-category" name="category"><option value="">None</option>{% for c in shell_categories %}<option value="{{ c.id }}">{{ c.full_name }}</option>{% endfor %}</select><p class="field-error" data-error-for="category"></p></div>
+      </div>
+    </div>
+    <div class="dialog-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit" data-submit>Save</button></div>
+  </form>
+</dialog>
+
+<dialog id="contrib-dialog" aria-labelledby="contrib-title">
+  <form id="contrib-form" method="dialog" novalidate>
+    <div class="dialog-head"><h2 id="contrib-title">Add to goal</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close">{% icon "x" %}</button></div>
+    <div class="dialog-body">
+      <div class="form-error" data-form-error role="alert" hidden></div>
+      <div class="form-grid">
+        <div class="field"><label for="contrib-amount">Amount</label><input id="contrib-amount" name="amount" type="text" data-money inputmode="decimal" required><p class="help">Use a negative amount for a withdrawal.</p><p class="field-error" data-error-for="amount"></p></div>
+        <div class="field"><label for="contrib-date">Date</label><input id="contrib-date" name="date" type="date" required value="{{ today|date:'Y-m-d' }}"><p class="field-error" data-error-for="date"></p></div>
+        <div class="field wide"><label for="contrib-note">Note (optional)</label><input id="contrib-note" name="note" type="text" maxlength="200"><p class="field-error" data-error-for="note"></p></div>
+      </div>
+    </div>
+    <div class="dialog-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit" data-submit>Add</button></div>
+  </form>
+</dialog>
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'app/js/goals.js' %}"></script>{% endblock %}
